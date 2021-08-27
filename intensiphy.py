@@ -12,7 +12,8 @@ def parse_args():
     parser.add_argument('--align_file')
     parser.add_argument('--cores')
     parser.add_argument('--accession_csv')
-    parser.add_argument('--update_method')
+    parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
+        of fastq files instead of continuous downloading.')
     return parser.parse_args()
 
 def read_csv_file(csv_file):
@@ -51,20 +52,21 @@ def calulate_cores(set_cores):
     for num in output:
         assert type(num) == int
 
+    print(output)
     return output
     
 def check_duplicate_accesions(accession_db, fasta_names):
     """Checks the alignment file vs the accesion list
     and produces a list of accessions that are already in the alignment."""
-    duplicate_sra_runs = []
-    
-    for value in accession_db:
-        if value in fasta_names:
+    non_duplicate_sra_runs = []
+
+    for num, value in enumerate(accession_db):
+        if value not in fasta_names:
             assert type(value) == str
             assert len(value) > 1
-            duplicate_sra_runs.append(value)
-
-    return duplicate_sra_runs
+            non_duplicate_sra_runs.append(value)
+            
+    return non_duplicate_sra_runs
 
 def read_fasta_names(align):
     """Reads the names of the sequences from the fasta file."""
@@ -79,7 +81,20 @@ def read_fasta_names(align):
     
     return names
 
+def downloading_and_running(method, accession_list, runs_number):
+    if method == False:
+        # continuous gradual downloading of data has been selected/left as default.
+        batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
 
+
+def batch_download(accession_list):
+    print("waggle")
+
+def prepare_batch_accessions(accessions, runs):
+    """Return a list of lists containing the number of files to download before each Extensiphy run"""
+    chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
+    
+    return chunks
 
 def main():
     args = parse_args()
@@ -95,8 +110,10 @@ def main():
     read_accessions = read_csv_file(args.accession_csv)
 
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
-    check_dupes = check_duplicate_accesions(read_accessions, read_fasta)
+    removed_dupes = check_duplicate_accesions(read_accessions, read_fasta)
     
+    # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
+    process_data = downloading_and_running(args.b, removed_dupes, get_cores[0])
 
 if __name__ == '__main__':
     main()
