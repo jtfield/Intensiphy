@@ -5,6 +5,7 @@ import argparse
 import re
 import csv
 import pandas as pd
+import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
@@ -81,14 +82,26 @@ def read_fasta_names(align):
     
     return names
 
-def downloading_and_running(method, accession_list, runs_number):
+def downloading_and_running(method, accessions, runs):
+    
+    # Identify if we're processing data by downloading in batches between Extesniphy runs
+    # or by downloading everything all at once and running extensiphy after
     if method == False:
         # continuous gradual downloading of data has been selected/left as default.
-        batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
+        batches_run = batch_download(accessions, runs)
 
 
-def batch_download(accession_list):
-    print("waggle")
+def batch_download(accession_list, runs_number):
+    """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
+    batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
+
+        for accessions in batches_of_accessions:
+        
+            print(accessions)
+            for single_accession in accessions:
+                print(single_accession)
+
+                subprocess.run(["fasterq-dump", "--split-files", single_accession])
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
