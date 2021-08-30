@@ -83,48 +83,53 @@ def read_fasta_names(align):
     
     return names
 
-def downloading_and_running(method, accessions, runs):
-    
-    # Identify if we're processing data by downloading in batches between Extesniphy runs
-    # or by downloading everything all at once and running extensiphy after
-    if method == False:
-        # continuous gradual downloading of data has been selected/left as default.
-        batches_run = batch_download(accessions, runs)
-
-    elif method == True:
-        # Bulk download all fastq files before running Extensiphy
-        bulk_run = bulk_download(accessions)
-
-        # TODO: Extensiphy run goes here
-        
-
-
-def batch_download(accession_list, runs_number):
-    """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
-    batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
-
-        for accessions in batches_of_accessions:
-        
-            print(accessions)
-            for single_accession in accessions:
-                print(single_accession)
-
-                subprocess.run(["fasterq-dump", "--split-files", single_accession])
-        
-            # TODO: Extensiphy runs go here
-
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
     chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
     
     return chunks
 
-def bulk_download(accession_list, output_folder):
+
+def downloading_and_running(method, accessions, runs, out_dir):
+    
+    # Identify if we're processing data by downloading in batches between Extesniphy runs
+    # or by downloading everything all at once and running extensiphy after
+
+    # make the folder to hold reads
+    # subprocess.run(["mkdir", outdir + "/bulk_reads"])
+
+    if method == False:
+        # continuous gradual downloading of data has been selected/left as default.
+        batches_run = batch_download(accessions, runs, out_dir)
+
+    elif method == True:
+        # Bulk download all fastq files before running Extensiphy
+        bulk_run = bulk_download(accessions, out_dir)
+
+        # TODO: Extensiphy run goes here
+
+
+def batch_download(accession_list, runs_number, out_dir):
+    """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
+    batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
+
+    os.chdir(out_dir + "/read_files")
+
+    for accessions in batches_of_accessions:
+    
+        # print(accessions)
+        for single_accession in accessions:
+            # print(single_accession)
+            subprocess.run(["fasterq-dump", "--split-files", single_accession])
+    
+        # TODO: Extensiphy runs go here
+
+
+def bulk_download(accession_list, out_dir):
     """Bulk download every sequence (unlike the batch method)"""
 
-    subprocess.run(["mkdir", output_folder + "/bulk_reads"])
-
     # TODO: make sure fastq files get into the reads folder
+    os.chdir(out_dir + "/read_files")
 
     for single_accession in accession_list:
 
@@ -134,6 +139,7 @@ def main():
     args = parse_args()
 
     subprocess.run(["mkdir", args.ep_out_dir])
+    subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
 
     os.chdir(args.ep_out_dir)
 
@@ -151,7 +157,7 @@ def main():
     removed_dupes = check_duplicate_accesions(read_accessions, read_fasta)
     
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
-    process_data = downloading_and_running(args.b, removed_dupes, get_cores[0])
+    process_data = downloading_and_running(args.b, removed_dupes, get_cores[0], args.ep_out_dir)
 
 if __name__ == '__main__':
     main()
