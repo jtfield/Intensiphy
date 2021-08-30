@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument('--align_file')
     parser.add_argument('--cores')
     parser.add_argument('--accession_csv')
+    parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
     return parser.parse_args()
@@ -90,6 +91,13 @@ def downloading_and_running(method, accessions, runs):
         # continuous gradual downloading of data has been selected/left as default.
         batches_run = batch_download(accessions, runs)
 
+    elif method == True:
+        # Bulk download all fastq files before running Extensiphy
+        bulk_run = bulk_download(accessions)
+
+        # TODO: Extensiphy run goes here
+        
+
 
 def batch_download(accession_list, runs_number):
     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
@@ -102,6 +110,8 @@ def batch_download(accession_list, runs_number):
                 print(single_accession)
 
                 subprocess.run(["fasterq-dump", "--split-files", single_accession])
+        
+            # TODO: Extensiphy runs go here
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
@@ -109,8 +119,23 @@ def prepare_batch_accessions(accessions, runs):
     
     return chunks
 
+def bulk_download(accession_list, output_folder):
+    """Bulk download every sequence (unlike the batch method)"""
+
+    subprocess.run(["mkdir", output_folder + "/bulk_reads"])
+
+    # TODO: make sure fastq files get into the reads folder
+
+    for single_accession in accession_list:
+
+        subprocess.run(["fasterq-dump", "--split-files", single_accession])
+
 def main():
     args = parse_args()
+
+    subprocess.run(["mkdir", args.ep_out_dir])
+
+    os.chdir(args.ep_out_dir)
 
     # calculate the core organization to pass to Extensiphy
     get_cores = calulate_cores(args.cores)
