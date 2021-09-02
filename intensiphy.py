@@ -6,6 +6,7 @@ import re
 import csv
 import pandas as pd
 import subprocess
+import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
@@ -14,18 +15,70 @@ def parse_args():
     parser.add_argument('--cores')
     parser.add_argument('--accession_csv')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
+    parser.add_argument('-organism', type=str, help='scientific name of the organism or group of organisms you \
+         would like to query SRA for and update your alignment with')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
     return parser.parse_args()
 
-def read_csv_file(csv_file):
-    """Reads the accession file provided by the users."""
-    csv = pd.read_csv(csv_file)
-    
-    just_accessions = csv["Run"]
-    # print(just_accessions)
+def main():
+    args = parse_args()
 
-    return just_accessions
+    subprocess.run(["mkdir", args.ep_out_dir])
+    subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
+    subprocess.run(["mkdir", args.ep_out_dir + "/run_log_files"])
+    subprocess.run(["mkdir", args.ep_out_dir + "/alignments"])
+    subprocess.run(["mkdir", args.ep_out_dir + "/accession_files"])
+
+    os.chdir(args.ep_out_dir)
+
+    # calculate the core organization to pass to Extensiphy
+    get_cores = calulate_cores(args.cores)
+    # print(get_cores)
+
+    # download_accessions(args.organism)
+
+    # read_file = read_csv_file(args.accession_csv)
+    read_fasta = read_fasta_names(args.align_file)
+
+    #read list of accessions
+    read_accessions = read_csv_file(args.accession_csv)
+
+    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+    remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+    remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+    
+    # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
+    if not remove_paired_dupes.empty:
+        process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
+
+def download_accessions(org_name, out_dir):
+    """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
+
+    now = datetime.datetime.now()
+
+    os.chdir(out_dir + "/accession_files")
+
+    # wget -O test.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=Neisseria gonorrhoeae[Organism]"
+    subprocess.run(["wget", "-O", "accessions_" + now.strftime('%Y-%m-%d') + ".csv", "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term="+org_name])
+
+    os.chdir(out_dir)
+
+
+def read_csv_file(csv_file):
+    """Reads the accession file provided by the users and parses compatible sequences."""
+    csv = pd.read_csv(csv_file)
+    output = []
+
+    filtered_df = csv.query("LibraryStrategy == 'WGS' and LibrarySource == 'GENOMIC' and Platform == 'ILLUMINA'")
+
+    paired_filtered_df = filtered_df.query("LibraryLayout == 'PAIRED'")
+    single_filtered_df = filtered_df.query("LibraryLayout == 'SINGLE'")
+
+    output.append(paired_filtered_df)
+    output.append(single_filtered_df)
+
+    return output
 
 def calulate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
@@ -60,15 +113,18 @@ def calulate_cores(set_cores):
 def check_duplicate_accesions(accession_db, fasta_names):
     """Checks the alignment file vs the accesion list
     and produces a list of accessions that are already in the alignment."""
-    non_duplicate_sra_runs = []
 
-    for num, value in enumerate(accession_db):
-        if value not in fasta_names:
+    copy_df = accession_db.copy()
+
+    for name, value in accession_db['Run'].iteritems():
+        if value in fasta_names:
             assert type(value) == str
             assert len(value) > 1
-            non_duplicate_sra_runs.append(value)
+            copy_df.drop(name)
+            print(name)
+            print(value)
             
-    return non_duplicate_sra_runs
+    return copy_df
 
 def read_fasta_names(align):
     """Reads the names of the sequences from the fasta file."""
@@ -90,26 +146,33 @@ def prepare_batch_accessions(accessions, runs):
     return chunks
 
 
-def downloading_and_running(method, accessions, runs, out_dir):
+def downloading_and_running(method, accessions, run_num, out_dir, align):
     
     # Identify if we're processing data by downloading in batches between Extesniphy runs
     # or by downloading everything all at once and running extensiphy after
 
-    # make the folder to hold reads
-    # subprocess.run(["mkdir", outdir + "/bulk_reads"])
+    # pull accessions from df
+    run_ids = []
+    for name, value in accessions['Run'].iteritems():
+        run_ids.append(value)
 
     if method == False:
         # continuous gradual downloading of data has been selected/left as default.
-        batches_run = batch_download(accessions, runs, out_dir)
+        batches_run = batch_download(run_ids, run_num[0], out_dir, align)
 
-    elif method == True:
+    elif method:
         # Bulk download all fastq files before running Extensiphy
-        bulk_run = bulk_download(accessions, out_dir)
+        bulk_run = bulk_download(run_ids, out_dir)
 
-        # TODO: Extensiphy run goes here
+        print("Bulk data download complete.")
+        print("Beginning Extensiphy run to update your alignment.")
 
+        os.chdir(out_dir)
 
-def batch_download(accession_list, runs_number, out_dir):
+        # TODO: specify cleanup of intermediate files in all runs
+        subprocess.run(["multi_map.sh", "-a", align, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(run_num[0]) ,"-c", str(run_num[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
+
+def batch_download(accession_list, runs_number, out_dir, alignment):
     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
     batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
 
@@ -122,42 +185,53 @@ def batch_download(accession_list, runs_number, out_dir):
             # print(single_accession)
             subprocess.run(["fasterq-dump", "--split-files", single_accession])
     
-        # TODO: Extensiphy runs go here
+        subprocess.run(["multi_map.sh", "-a", alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(runs_number[0]) ,"-c", str(runs_number[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
+
+        # TODO: Remove downloaded fastq files, move the output alignment and the run log file to the appropriate places
 
 
 def bulk_download(accession_list, out_dir):
     """Bulk download every sequence (unlike the batch method)"""
 
-    # TODO: make sure fastq files get into the reads folder
     os.chdir(out_dir + "/read_files")
 
     for single_accession in accession_list:
 
+        print(single_accession)
         subprocess.run(["fasterq-dump", "--split-files", single_accession])
 
-def main():
-    args = parse_args()
 
-    subprocess.run(["mkdir", args.ep_out_dir])
-    subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
+# TODO: handle separating of single and paired-end read files for separate updating runs
+# TODO: Add function to download and parse sequence data upon organism name input
 
-    os.chdir(args.ep_out_dir)
+# def main():
+#     args = parse_args()
 
-    # calculate the core organization to pass to Extensiphy
-    get_cores = calulate_cores(args.cores)
-    # print(get_cores)
+#     subprocess.run(["mkdir", args.ep_out_dir])
+#     subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
+#     subprocess.run(["mkdir", args.ep_out_dir + "/run_log_files"])
 
-    # read_file = read_csv_file(args.accession_csv)
-    read_fasta = read_fasta_names(args.align_file)
+#     os.chdir(args.ep_out_dir)
 
-    #read list of accessions
-    read_accessions = read_csv_file(args.accession_csv)
+#     # calculate the core organization to pass to Extensiphy
+#     get_cores = calulate_cores(args.cores)
+#     # print(get_cores)
 
-    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
-    removed_dupes = check_duplicate_accesions(read_accessions, read_fasta)
+#     download_accessions(args.organism)
+
+#     # read_file = read_csv_file(args.accession_csv)
+#     read_fasta = read_fasta_names(args.align_file)
+
+#     #read list of accessions
+#     read_accessions = read_csv_file(args.accession_csv)
+
+#     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+#     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+#     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
     
-    # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
-    process_data = downloading_and_running(args.b, removed_dupes, get_cores[0], args.ep_out_dir)
+#     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
+#     if not remove_paired_dupes.empty:
+#         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
 
 if __name__ == '__main__':
     main()
