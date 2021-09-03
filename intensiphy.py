@@ -4,6 +4,7 @@ import os
 import argparse
 import re
 import csv
+from numpy.lib.shape_base import split
 import pandas as pd
 import subprocess
 import datetime
@@ -15,7 +16,7 @@ def parse_args():
     parser.add_argument('--cores')
     # parser.add_argument('--accession_csv')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
-    parser.add_argument('-organism', type=str, help='scientific name of the organism or group of organisms you \
+    parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
          would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism]')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
@@ -64,18 +65,27 @@ def download_accessions(org_name, out_dir):
 
     os.chdir(out_dir + "/accession_files")
 
-    # wget -O test.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=Neisseria gonorrhoeae[Organism]"
-    subprocess.run(["wget", "-O", "accessions_" + now.strftime('%Y-%m-%d') + ".csv", "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term="+org_name])
+    # ' '.join(org_name)
+    org_name = org_name[0].strip("'")
+
+    output_file = 'accessions_' + now.strftime('%Y-%m-%d')
+
+    url = 'https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=' + org_name
+
+    subprocess.run(['wget', '-O', output_file,  url])
 
     os.chdir(out_dir)
 
 
-def read_csv_file(current_accessions, out_dir):
+def read_csv_file(out_dir):
     """Reads the accession file provided by the users and parses compatible sequences."""
 
     os.chdir(out_dir + "/accession_files")
 
-    csv = pd.read_csv(current_accessions)
+    current_accession = find_recent_date(out_dir + "/accession_files")
+
+    csv = pd.read_csv(current_accession)
+
     output = []
 
     filtered_df = csv.query("LibraryStrategy == 'WGS' and LibrarySource == 'GENOMIC' and Platform == 'ILLUMINA'")
@@ -86,6 +96,8 @@ def read_csv_file(current_accessions, out_dir):
     output.append(paired_filtered_df)
     output.append(single_filtered_df)
 
+    print(output)
+
     os.chdir(out_dir)
 
     return output
@@ -95,14 +107,28 @@ def find_recent_date(folder_of_files):
     os.chdir(folder_of_files)
 
     list_of_files = []
-    creation_dates = []
 
     for file in os.listdir(folder_of_files):
-        list_of_files.append(file)
-        created_time = os.stat(file).st_ctime
-        creation_dates.append(creation_dates)
+        data = []
+        data.append(file)
+        split_file = file.split('_')
+        date = split_file[1]
+        data.append(date)
+        # created_time = os.stat(file).st_ctime
+        # data.append(created_time)
+        list_of_files.append(data)
 
     df = pd.DataFrame(list_of_files, columns=['file_name', 'creation_date'])
+
+    df['creation_date'] = pd.to_datetime(df['creation_date'])
+
+    most_recent_accession_file = df['creation_date'].max()
+
+    most_recent_row = df.loc[df['creation_date'] == most_recent_accession_file]
+
+    current_accession_file = most_recent_row['file_name'].tolist()[0]
+
+    return current_accession_file
 
 
 
