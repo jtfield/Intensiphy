@@ -13,10 +13,10 @@ def parse_args():
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
     parser.add_argument('--align_file')
     parser.add_argument('--cores')
-    parser.add_argument('--accession_csv')
+    # parser.add_argument('--accession_csv')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('-organism', type=str, help='scientific name of the organism or group of organisms you \
-         would like to query SRA for and update your alignment with')
+         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism]')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
     return parser.parse_args()
@@ -36,21 +36,26 @@ def main():
     get_cores = calulate_cores(args.cores)
     # print(get_cores)
 
-    # download_accessions(args.organism)
+    download_accessions(args.organism, args.ep_out_dir)
 
     # read_file = read_csv_file(args.accession_csv)
     read_fasta = read_fasta_names(args.align_file)
 
     #read list of accessions
-    read_accessions = read_csv_file(args.accession_csv)
+    read_accessions = read_csv_file(args.ep_out_dir)
+
+    quit()
 
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
     
+    
+
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
     if not remove_paired_dupes.empty:
         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
+
 
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
@@ -65,9 +70,12 @@ def download_accessions(org_name, out_dir):
     os.chdir(out_dir)
 
 
-def read_csv_file(csv_file):
+def read_csv_file(current_accessions, out_dir):
     """Reads the accession file provided by the users and parses compatible sequences."""
-    csv = pd.read_csv(csv_file)
+
+    os.chdir(out_dir + "/accession_files")
+
+    csv = pd.read_csv(current_accessions)
     output = []
 
     filtered_df = csv.query("LibraryStrategy == 'WGS' and LibrarySource == 'GENOMIC' and Platform == 'ILLUMINA'")
@@ -78,7 +86,26 @@ def read_csv_file(csv_file):
     output.append(paired_filtered_df)
     output.append(single_filtered_df)
 
+    os.chdir(out_dir)
+
     return output
+
+def find_recent_date(folder_of_files):
+
+    os.chdir(folder_of_files)
+
+    list_of_files = []
+    creation_dates = []
+
+    for file in os.listdir(folder_of_files):
+        list_of_files.append(file)
+        created_time = os.stat(file).st_ctime
+        creation_dates.append(creation_dates)
+
+    df = pd.DataFrame(list_of_files, columns=['file_name', 'creation_date'])
+
+
+
 
 def calulate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
