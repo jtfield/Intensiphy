@@ -1,21 +1,12 @@
 #! /usr/bin/python3
 
-# run in command line to generate file to check against
+# A test to make sure we get back the expected file structure from NCBI SRA
 # wget -O shell_run.csv "https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=Anser anser[Organism]"
 import subprocess
-import argparse
 import os
-import inspect
 
-# def parse_args():
-#     parser = argparse.ArgumentParser(prog='Intensiphy', \
-#         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
-#     # parser.add_argument('--accession_csv')
-#     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
-#     return parser.parse_args()
 
 def download_accessions_test(outdir):
-    # args = parse_args()
 
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     absolute_path = split_path_and_name[0]
@@ -39,6 +30,3 @@ def download_accessions_test(outdir):
     for lin in test_fi:
         split_line=lin.split(',')
         assert split_line[0] in ex_acc
-
-# if __name__ == '__main__':
-#     main()
