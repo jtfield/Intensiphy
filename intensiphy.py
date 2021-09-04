@@ -39,7 +39,7 @@ def main():
     # calculate the core organization to pass to Extensiphy
     get_cores = calulate_cores(args.cores)
 
-    tests.accessions_tests.accession_download_test.download_accessions_test(absolute_output_dir_path)
+    tests.accessions_tests.accession_download_test.test_download_accessions()
 
     download_accessions(args.organism, args.ep_out_dir)
 
