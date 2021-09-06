@@ -8,7 +8,6 @@ from numpy.lib.shape_base import split
 import pandas as pd
 import subprocess
 import datetime
-import inspect
 import tests.accessions_tests.accession_download_test
 
 def parse_args():
@@ -16,7 +15,6 @@ def parse_args():
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
     parser.add_argument('--align_file')
     parser.add_argument('--cores')
-    # parser.add_argument('--accession_csv')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
          would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism]')
@@ -26,20 +24,23 @@ def parse_args():
 
 def main():
     args = parse_args()
-
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
-    subprocess.run(["mkdir", args.ep_out_dir])
-    subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
-    subprocess.run(["mkdir", args.ep_out_dir + "/run_log_files"])
-    subprocess.run(["mkdir", args.ep_out_dir + "/alignments"])
-    subprocess.run(["mkdir", args.ep_out_dir + "/accession_files"])
+
+    # Check if output dir has been made already from a previous run
+    # If output dir exists, the fundamentals of the program change to suit
+    # a repeating run.
+    dir_existence = check_dir_exists(args.ep_out_dir)
+
+    # subprocess.run(["mkdir", args.ep_out_dir])
+    # subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
+    # subprocess.run(["mkdir", args.ep_out_dir + "/run_log_files"])
+    # subprocess.run(["mkdir", args.ep_out_dir + "/alignments"])
+    # subprocess.run(["mkdir", args.ep_out_dir + "/accession_files"])
     os.chdir(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
 
     # calculate the core organization to pass to Extensiphy
     get_cores = calulate_cores(args.cores)
-
-    tests.accessions_tests.accession_download_test.test_download_accessions()
 
     download_accessions(args.organism, args.ep_out_dir)
 
@@ -62,8 +63,44 @@ def main():
         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
 
 
+def check_dir_exists(dir_name):
+    """Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. \
+        If the directory doesn't exist, no previous run was performed, build all necessary sub directories."""
+    
+    does_dir_exist = os.path.isdir(dir_name)
+    print("Does the output specified output directory exist?: ", does_dir_exist)
+
+    if does_dir_exist:
+
+        assert os.path.isdir(dir_name + "/read_files")
+        assert os.path.isdir(dir_name + "/run_log_files")
+        assert os.path.isdir(dir_name + "/alignments")
+        assert os.path.isdir(dir_name + "/accession_files")
+
+        return does_dir_exist
+
+    else:
+        subprocess.run(["mkdir", dir_name])
+        subprocess.run(["mkdir", dir_name + "/read_files"])
+        subprocess.run(["mkdir", dir_name + "/run_log_files"])
+        subprocess.run(["mkdir", dir_name + "/alignments"])
+        subprocess.run(["mkdir", dir_name + "/accession_files"])
+
+        assert os.path.isdir(dir_name + "/read_files")
+        assert os.path.isdir(dir_name + "/run_log_files")
+        assert os.path.isdir(dir_name + "/alignments")
+        assert os.path.isdir(dir_name + "/accession_files")
+
+        return does_dir_exist
+
+    
+    
+
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
+
+    # Test!
+    tests.accessions_tests.accession_download_test.test_download_accessions()
 
     now = datetime.datetime.now()
 
