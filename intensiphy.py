@@ -2,8 +2,7 @@
 
 import os
 import argparse
-import re
-import csv
+import pathlib
 from numpy.lib.shape_base import split
 import pandas as pd
 import subprocess
@@ -29,15 +28,13 @@ def main():
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit
     # a repeating run.
+    # Returns True if output dir exists already and False if output dir doesn't exist prior to execution.
     dir_existence = check_dir_exists(args.ep_out_dir)
 
-    # subprocess.run(["mkdir", args.ep_out_dir])
-    # subprocess.run(["mkdir", args.ep_out_dir + "/read_files"])
-    # subprocess.run(["mkdir", args.ep_out_dir + "/run_log_files"])
-    # subprocess.run(["mkdir", args.ep_out_dir + "/alignments"])
-    # subprocess.run(["mkdir", args.ep_out_dir + "/accession_files"])
     os.chdir(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
+
+    current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
     # calculate the core organization to pass to Extensiphy
     get_cores = calulate_cores(args.cores)
@@ -45,18 +42,16 @@ def main():
     download_accessions(args.organism, args.ep_out_dir)
 
     # read_file = read_csv_file(args.accession_csv)
-    read_fasta = read_fasta_names(args.align_file)
+    read_fasta = read_fasta_names(current_align_file, absolute_output_dir_path)
 
     #read list of accessions
     read_accessions = read_csv_file(args.ep_out_dir)
-
-    quit()
 
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
     
-    
+    quit()
 
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
     if not remove_paired_dupes.empty:
@@ -93,7 +88,20 @@ def check_dir_exists(dir_name):
 
         return does_dir_exist
 
+def get_most_recent_align(run_bool, starting_align, output_dir_path):
+    """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
+        or if the output dir doesn't exist yet (indicating the starting phase of a run)."""
+    if run_bool:
+
+        current_alignment = find_recent_date(output_dir_path + "/alignments")
+
+        return current_alignment
     
+    else:
+
+        current_alignment = symlink_align(starting_align, output_dir_path)
+
+        return current_alignment
     
 
 def download_accessions(org_name, out_dir):
@@ -137,7 +145,7 @@ def read_csv_file(out_dir):
     output.append(paired_filtered_df)
     output.append(single_filtered_df)
 
-    print(output)
+    # print(output)
 
     os.chdir(out_dir)
 
@@ -218,10 +226,11 @@ def check_duplicate_accesions(accession_db, fasta_names):
             
     return copy_df
 
-def read_fasta_names(align):
+def read_fasta_names(_align, _outdir):
     """Reads the names of the sequences from the fasta file."""
     names = []
-    with open(align, 'r') as fasta_file:
+
+    with open(_align, 'r') as fasta_file:
         for line in fasta_file:
             if line.startswith('>'):
                 seq_name = line.strip(">").strip('\n')
@@ -230,6 +239,23 @@ def read_fasta_names(align):
                 names.append(seq_name)
     
     return names
+
+def symlink_align(align, outdir):
+    
+    now = datetime.datetime.now()
+
+    # Symlink the alignment file into the alignments folder
+    abs_align_path = os.path.realpath(align)
+
+    new_align_name = outdir + '/alignments/msa_' + now.strftime('%Y-%m-%d')
+
+    symlink_file = pathlib.Path(new_align_name)
+
+    symlink_file.symlink_to(abs_align_path)
+
+    return new_align_name
+
+    
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
