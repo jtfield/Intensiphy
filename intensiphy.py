@@ -104,14 +104,36 @@ def make_align(run_bool, output_dir_path, input_accessions):
     if run_bool == False:
         print("make alignment with gon_phyling")
 
-        accessions_files = os.listdir(output_dir_path)
+        accessions_files = os.listdir(output_dir_path + "/accession_files")
 
         num_files = len(accessions_files)
         print(accessions_files)
 
-        # accessions = pd.read_csv("output_dir_path/")
+        if num_files == 1:
+            accession_file = accessions_files[0]
 
-        # subprocess.run("gon_phyling.sh", "")
+            accessions = pd.read_csv(output_dir_path + "/accession_files/" + accession_file)
+
+            #Drop rows with empty values in the Run column because we only want rows with SRA numbers associated
+            accessions.dropna(subset = ['Run'], inplace = True)
+
+            indexSingleEnd = accessions[accessions['LibraryLayout'] == 'SINGLE'].index
+
+            accessions.drop(indexSingleEnd, inplace = True)
+
+            os.mkdir(output_dir_path + "/starting_align_files")
+            os.chdir(output_dir_path + "/starting_align_files")
+
+            #TODO: Randomize sequence selection for potentially less biased loci selection
+            for num in range(0,5):
+                sra_num = accessions.loc[num,'Run']
+                subprocess.run(["fasterq-dump", "--split-files", sra_num])
+
+            subprocess.run(["gon_phyling.sh", "-d", output_dir_path + "/starting_align_files", "-1", "_1.fastq", "-2", "_2.fastq"])
+
+            os.chdir(output_dir_path + "/starting_align_files")
+
+            # subprocess.run("gon_phyling.sh", "")
 
 
 def get_most_recent_align(run_bool, starting_align, output_dir_path):
