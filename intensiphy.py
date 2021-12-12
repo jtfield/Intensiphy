@@ -14,9 +14,12 @@ def parse_args():
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
     parser.add_argument('--align_file')
     parser.add_argument('--cores')
+    parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
+    parser.add_argument('--accession_method', default="AUTO_DL", help='Dictates how collecting and inputting accession numbers will be handled. \
+        (OPTIONS: USER_INPUT, AUTO_DL, AUTO_PATHDB), (DEFAULT: AUTO_DL)')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
-         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism]')
+         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
     return parser.parse_args()
@@ -34,12 +37,19 @@ def main():
     os.chdir(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
 
+    # download_accessions(args.organism, args.ep_out_dir)
+    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
+
+    make_align(dir_existence, absolute_output_dir_path, args.accs_file)
+
+    quit()
+
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
     # calculate the core organization to pass to Extensiphy
     get_cores = calulate_cores(args.cores)
 
-    download_accessions(args.organism, args.ep_out_dir)
+    # download_accessions(args.organism, args.ep_out_dir)
 
     # read_file = read_csv_file(args.accession_csv)
     read_fasta = read_fasta_names(current_align_file, absolute_output_dir_path)
@@ -50,7 +60,7 @@ def main():
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
-    
+
     quit()
 
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
@@ -61,7 +71,7 @@ def main():
 def check_dir_exists(dir_name):
     """Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. \
         If the directory doesn't exist, no previous run was performed, build all necessary sub directories."""
-    
+
     does_dir_exist = os.path.isdir(dir_name)
     print("Does the output specified output directory exist?: ", does_dir_exist)
 
@@ -88,6 +98,22 @@ def check_dir_exists(dir_name):
 
         return does_dir_exist
 
+def make_align(run_bool, output_dir_path, input_accessions):
+    """If this is the start of a run (no output folder existed prior to starting this run) \
+    used gon_phyling to build an alignment based on the first 6 available samples"""
+    if run_bool == False:
+        print("make alignment with gon_phyling")
+
+        accessions_files = os.listdir(output_dir_path)
+
+        num_files = len(accessions_files)
+        print(accessions_files)
+
+        # accessions = pd.read_csv("output_dir_path/")
+
+        # subprocess.run("gon_phyling.sh", "")
+
+
 def get_most_recent_align(run_bool, starting_align, output_dir_path):
     """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
         or if the output dir doesn't exist yet (indicating the starting phase of a run)."""
@@ -96,13 +122,28 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
         current_alignment = find_recent_date(output_dir_path + "/alignments")
 
         return current_alignment
-    
+
     else:
 
         current_alignment = symlink_align(starting_align, output_dir_path)
 
         return current_alignment
-    
+
+
+def handle_accession_options(accession_option, organism, folder_path, input_file):
+    """Only for use when not automatically downloading SRA numbers"""
+    print("tmp input")
+
+    if accession_option == "AUTO_DL":
+        download_accessions(organism, folder_path)
+
+    elif accession_option == "AUTO_PATHDB":
+        print("option not available yet")
+
+    elif accession_option == "USER_INPUT":
+        subprocess.run(['cp', input_file, folder_path + "/accession_files/"])
+
+
 
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
@@ -186,17 +227,17 @@ def calulate_cores(set_cores):
     total_cores = int(set_cores)
     runs = 0
     cores_per_run = 0
-    
+
     if total_cores > 2 and total_cores < 10:
         runs = 2
         cores_per_run = total_cores / 2
-        
+
     elif total_cores >= 10:
         runs = total_cores / 2
         cores_per_run = 2
-    
+
     assert runs * cores_per_run <= total_cores
-    
+
     output.append(int(runs))
     output.append(int(cores_per_run))
 
@@ -209,7 +250,7 @@ def calulate_cores(set_cores):
 
     print(output)
     return output
-    
+
 def check_duplicate_accesions(accession_db, fasta_names):
     """Checks the alignment file vs the accesion list
     and produces a list of accessions that are already in the alignment."""
@@ -223,7 +264,7 @@ def check_duplicate_accesions(accession_db, fasta_names):
             copy_df.drop(name)
             print(name)
             print(value)
-            
+
     return copy_df
 
 def read_fasta_names(_align, _outdir):
@@ -237,11 +278,11 @@ def read_fasta_names(_align, _outdir):
                 assert len(seq_name) > 1
                 assert type(seq_name) == str
                 names.append(seq_name)
-    
+
     return names
 
 def symlink_align(align, outdir):
-    
+
     now = datetime.datetime.now()
 
     # Symlink the alignment file into the alignments folder
@@ -255,17 +296,17 @@ def symlink_align(align, outdir):
 
     return new_align_name
 
-    
+
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
     chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
-    
+
     return chunks
 
 
 def downloading_and_running(method, accessions, run_num, out_dir, align):
-    
+
     # Identify if we're processing data by downloading in batches between Extesniphy runs
     # or by downloading everything all at once and running extensiphy after
 
@@ -297,12 +338,12 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
     os.chdir(out_dir + "/read_files")
 
     for accessions in batches_of_accessions:
-    
+
         # print(accessions)
         for single_accession in accessions:
             # print(single_accession)
             subprocess.run(["fasterq-dump", "--split-files", single_accession])
-    
+
         subprocess.run(["multi_map.sh", "-a", alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(runs_number[0]) ,"-c", str(runs_number[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
 
         # TODO: Remove downloaded fastq files, move the output alignment and the run log file to the appropriate places
