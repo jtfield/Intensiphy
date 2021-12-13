@@ -11,9 +11,12 @@ def test_build_alignment():
     absolute_path = split_path_and_name[0]
     subprocess.run(["gon_phyling.sh", "-d", absolute_path + "/testdata", "-1", "_R1.fq", "-2", "_R2.fq"])
 
-    output_dir = absolute_path + "/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing"
-    output_alignment = absolute_path + "/combo.fas"
-    assert os.path.exists(output_alignment)
+    output_dir = absolute_path + "/testdata/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing"
+    output_alignment = output_dir + "/combo.fas"
+    print(absolute_path)
+    print(output_alignment)
+    print(os.path.exists(output_alignment))
+    assert os.path.exists(output_alignment) == True
 
     with open(output_alignment) as align_file:
         for line in align_file:

@@ -8,6 +8,7 @@ import pandas as pd
 import subprocess
 import datetime
 import tests.accessions_tests.accession_download_test
+import tests.assembly_tests.gon_phy_test
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
@@ -75,14 +76,16 @@ def reset_tests():
     absolute_path = split_path_and_name[0]
 
     #delete files created during test gon_phyling run
-    gon_phy_test_initial_dir = absolute_path + "/tests/assembly_tests/testdata/trimmed_reads")
+    gon_phy_test_initial_dir = absolute_path + "/tests/assembly_tests/testdata/trimmed_reads"
     if os.path.exists(gon_phy_test_initial_dir):
-        subprocess.run("rm", "-r", absolute_path + "/tests/assembly_tests/testdata/trimmed*")
-        subprocess.run("rm", absolute_path + "/tests/assembly_tests/testdata/x*")
-        subprocess.run("rm", "-r", absolute_path + "/tests/assembly_tests/testdata/repaired*")
+        print("Removing previous test outputs")
+        subprocess.run(["rm", "-r", absolute_path + "/tests/assembly_tests/testdata/trimmed_reads"])
+        # subprocess.run(["rm", absolute_path + "/tests/assembly_tests/testdata/x"])
+        subprocess.run(["rm", "-r", absolute_path + "/tests/assembly_tests/testdata/repaired_reads"])
 
     #delete csv downloaded during accession download test
-    os.remove(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv")
+    if os.path.exists(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv"):
+        os.remove(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv")
 
 
 def check_dir_exists(dir_name):
@@ -120,7 +123,7 @@ def make_align(run_bool, output_dir_path, input_accessions):
     used gon_phyling to build an alignment based on the first 6 available samples"""
 
     #Test!
-    tests.assemby_tests.gon_phy_test.test_build_alignment()
+    tests.assembly_tests.gon_phy_test.test_build_alignment()
 
     if run_bool == False:
 
