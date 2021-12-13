@@ -28,6 +28,8 @@ def main():
     args = parse_args()
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
 
+    reset_tests()
+
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit
     # a repeating run.
@@ -67,6 +69,21 @@ def main():
     if not remove_paired_dupes.empty:
         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
 
+def reset_tests():
+    """Function to reset test outputs so this isn't done by hand each time"""
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    absolute_path = split_path_and_name[0]
+
+    #delete files created during test gon_phyling run
+    gon_phy_test_initial_dir = absolute_path + "/tests/assembly_tests/testdata/trimmed_reads")
+    if os.path.exists(gon_phy_test_initial_dir):
+        subprocess.run("rm", "-r", absolute_path + "/tests/assembly_tests/testdata/trimmed*")
+        subprocess.run("rm", absolute_path + "/tests/assembly_tests/testdata/x*")
+        subprocess.run("rm", "-r", absolute_path + "/tests/assembly_tests/testdata/repaired*")
+
+    #delete csv downloaded during accession download test
+    os.remove(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv")
+
 
 def check_dir_exists(dir_name):
     """Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. \
@@ -101,7 +118,12 @@ def check_dir_exists(dir_name):
 def make_align(run_bool, output_dir_path, input_accessions):
     """If this is the start of a run (no output folder existed prior to starting this run) \
     used gon_phyling to build an alignment based on the first 6 available samples"""
+
+    #Test!
+    tests.assemby_tests.gon_phy_test.test_build_alignment()
+
     if run_bool == False:
+
         print("make alignment with gon_phyling")
 
         accessions_files = os.listdir(output_dir_path + "/accession_files")
