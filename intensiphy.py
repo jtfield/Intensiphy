@@ -3,6 +3,7 @@
 import os
 import argparse
 import pathlib
+import shutil
 from numpy.lib.shape_base import split
 import pandas as pd
 import subprocess
@@ -29,6 +30,7 @@ def parse_args():
 def main():
     args = parse_args()
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    ref_taxon = ""
 
     reset_tests()
 
@@ -341,7 +343,20 @@ def symlink_align(align, outdir):
 
     return new_align_name
 
+def align_rename_and_move(align, outdir):
 
+    now = datetime.datetime.now()
+
+    # Symlink the alignment file into the alignments folder
+    abs_align_path = os.path.realpath(align)
+
+    new_align_name = outdir + '/alignments/msa_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+
+    new_align_path = pathlib.Path(new_align_name)
+
+    shutil.copy(abs_align_path, new_align_name)
+
+    return new_align_name
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
@@ -381,6 +396,9 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
     batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
 
     read_dir_path = out_dir + "/read_files"
+    ep_output = out_dir + "/ep_tmp_outputs"
+    standard_align_path = ep_output + "/RESULTS/extended.aln"
+    align_outdir = out_dir + "/alignments"
 
     os.chdir(read_dir_path)
 
@@ -391,10 +409,20 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
             # print(single_accession)
             subprocess.run(["fasterq-dump", "--split-files", single_accession])
 
-        subprocess.run(["multi_map.sh", "-a", alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(runs_number[0]) ,"-c", str(runs_number[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
+        subprocess.run(["multi_map.sh", "-a", alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(runs_number[0]) ,"-c", str(runs_number[1]), "-1", "_1.fastq", "-2", "_2.fastq", -o, ep_output])
 
         # TODO: move the output alignment and the run log file to the appropriate places
         rm_fastq_files(read_dir_path)
+
+        # Copy and rename output alignment and put it the alignments folder for the next round
+        align_rename_and_move(standard_align_path, align_outdir)
+
+        # Remove Extensiphy output directory and contents and prepare for next phase of loop
+        try:
+            shutil.rmtree(ep_output)
+        except OSError as e:
+            print("Error: %s : %s" % (ep_output, e.strerror))
+
 
 def rm_read_files(out_dir):
     """Quick function to remove reads that have been used"""
