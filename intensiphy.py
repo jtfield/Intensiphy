@@ -63,8 +63,6 @@ def main():
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
 
-    quit()
-
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
     if not remove_paired_dupes.empty:
         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
