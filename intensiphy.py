@@ -13,7 +13,8 @@ import tests.assembly_tests.gon_phy_test
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
-    parser.add_argument('--align_file')
+    parser.add_argument('--align_file', default=False, help='input alignment option. \
+        If an alignment is added using this option, samples will be added to this alignment.')
     parser.add_argument('--cores')
     parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
     parser.add_argument('--accession_method', default="AUTO_DL", help='Dictates how collecting and inputting accession numbers will be handled. \
@@ -44,8 +45,6 @@ def main():
     accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
 
     make_align(dir_existence, absolute_output_dir_path, args.accs_file)
-
-    quit()
 
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
@@ -158,7 +157,7 @@ def make_align(run_bool, output_dir_path, input_accessions):
 
             os.chdir(output_dir_path + "/starting_align_files")
 
-            # subprocess.run("gon_phyling.sh", "")
+            symlink_align(output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path + "/alignments)
 
 
 def get_most_recent_align(run_bool, starting_align, output_dir_path):
@@ -171,6 +170,7 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
         return current_alignment
 
     else:
+        if starting_align != False:
 
         current_alignment = symlink_align(starting_align, output_dir_path)
 
