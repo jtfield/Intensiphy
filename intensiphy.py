@@ -380,7 +380,9 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
     batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
 
-    os.chdir(out_dir + "/read_files")
+    read_dir_path = out_dir + "/read_files"
+
+    os.chdir(read_dir_path)
 
     for accessions in batches_of_accessions:
 
@@ -391,8 +393,15 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
 
         subprocess.run(["multi_map.sh", "-a", alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(runs_number[0]) ,"-c", str(runs_number[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
 
-        # TODO: Remove downloaded fastq files, move the output alignment and the run log file to the appropriate places
+        # TODO: move the output alignment and the run log file to the appropriate places
+        rm_fastq_files(read_dir_path)
 
+def rm_read_files(out_dir):
+    """Quick function to remove reads that have been used"""
+    fastq_file_list = os.listdir(read_dir_path)
+    for fq_file in fastq_file_list:
+        path_to_file = os.path.join(out_dir, fq_file)
+        os.remove(path_to_file)
 
 def bulk_download(accession_list, out_dir):
     """Bulk download every sequence (unlike the batch method)"""
