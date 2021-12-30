@@ -7,6 +7,7 @@ import os
 
 
 def test_build_alignment():
+    print("Running Assembly Test.")
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     absolute_path = split_path_and_name[0]
     subprocess.run(["gon_phyling.sh", "-d", absolute_path + "/testdata", "-1", "_R1.fq", "-2", "_R2.fq"])
@@ -22,3 +23,5 @@ def test_build_alignment():
         for line in align_file:
             if ">" not in line and len(line) > 1:
                 assert len(line) > 100
+
+    print("Assembly Test Complete.")
