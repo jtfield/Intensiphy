@@ -179,7 +179,8 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
     else:
         if starting_align != False:
 
-            current_alignment = symlink_align(starting_align, output_dir_path)
+            # current_alignment = symlink_align(starting_align, output_dir_path)
+            current_alignment = align_rename_and_move(starting_align, output_dir_path)
 
             return current_alignment
 
@@ -430,9 +431,12 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
         print(current_alignment)
         print(out_dir + "/read_files")
         print(ep_output)
-        subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
+        # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
+        ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(ep_process.communicate())
+        # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
         print("Extensiphy run complete.")
-        
+
         # TODO: move the output alignment and the run log file to the appropriate places
         rm_read_files(read_dir_path)
 
