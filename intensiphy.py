@@ -8,6 +8,7 @@ from numpy.lib.shape_base import split
 import pandas as pd
 import subprocess
 import datetime
+import dateutil
 import tests.accessions_tests.accession_download_test
 import tests.assembly_tests.gon_phy_test
 
@@ -180,7 +181,7 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
         if starting_align != False:
 
             # current_alignment = symlink_align(starting_align, output_dir_path)
-            current_alignment = align_rename_and_move(starting_align, output_dir_path)
+            current_alignment = align_rename_and_move(starting_align, output_dir_path + "/alignments")
 
             return current_alignment
 
@@ -259,10 +260,14 @@ def find_recent_date(folder_of_files):
         data.append(file)
         split_file = file.split('_')
         date = split_file[1]
+        parsed_date = dateutil.parser.parse(date)
+        print(parsed_date)
         data.append(date)
         # created_time = os.stat(file).st_ctime
         # data.append(created_time)
         list_of_files.append(data)
+
+    print(list_of_files)
 
     df = pd.DataFrame(list_of_files, columns=['file_name', 'creation_date'])
 
@@ -438,8 +443,6 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
         print(ep_process.communicate())
         # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
         print("Extensiphy run complete.")
-
-        exit()
 
         # TODO: move the output alignment and the run log file to the appropriate places
         rm_read_files(read_dir_path)
