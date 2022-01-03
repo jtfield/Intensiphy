@@ -66,6 +66,7 @@ def main():
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
 
+
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
     if not remove_paired_dupes.empty:
         process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
@@ -87,7 +88,6 @@ def reset_tests():
     #delete csv downloaded during accession download test
     if os.path.exists(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv"):
         os.remove(absolute_path + "/tests/accessions_tests/ncbi_anser_anser.csv")
-
 
 def check_dir_exists(dir_name):
     """Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. \
@@ -166,7 +166,6 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
 
                     symlink_align(output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path)
 
-
 def get_most_recent_align(run_bool, starting_align, output_dir_path):
     """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
         or if the output dir doesn't exist yet (indicating the starting phase of a run)."""
@@ -185,6 +184,19 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
 
             return current_alignment
 
+def restructure_dates(file_name):
+    """Reads a file name with a date structured as Intensiphy produces them and restructures the included date for parsing of most recent file"""
+    print("Restructuring file creation times.")
+    split_path_and_file = file_name.rsplit("/", 1)
+    #print(split_path_and_file)
+    condensed_date = split_path_and_file[0]
+    #print(condensed_date)
+    condensed_date = split_path_and_file[0].replace("-","")
+    #print(condensed_date)
+    condensed_date = condensed_date.split("_")
+    #print(condensed_date)
+    condensed_date = int(condensed_date[1])
+    return condensed_date
 
 def handle_accession_options(accession_option, organism, folder_path, input_file):
     """Only for use when not automatically downloading SRA numbers"""
@@ -199,8 +211,6 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
     elif accession_option == "USER_INPUT":
         subprocess.run(['cp', input_file, folder_path + "/accession_files/"])
 
-
-
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
     print("Downloading accession number CSV file.")
@@ -214,14 +224,13 @@ def download_accessions(org_name, out_dir):
     # ' '.join(org_name)
     org_name = org_name[0].strip("'")
 
-    output_file = 'accessions_' + now.strftime('%Y-%m-%d')
+    output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
     url = 'https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=' + org_name
 
     subprocess.run(['wget', '-O', output_file,  url])
 
     os.chdir(out_dir)
-
 
 def read_csv_file(out_dir):
     """Reads the accession file provided by the users and parses compatible sequences."""
@@ -256,13 +265,15 @@ def find_recent_date(folder_of_files):
     list_of_files = []
 
     for file in os.listdir(folder_of_files):
+        file_date = restructure_dates(file)
         data = []
         data.append(file)
-        split_file = file.split('_')
-        date = split_file[1]
-        parsed_date = dateutil.parser.parse(date)
-        print(parsed_date)
-        data.append(date)
+        # split_file = file.split('_')
+        # date = split_file[1]
+        # parsed_date = dateutil.parser.parse(date)
+        # print(parsed_date)
+        # data.append(date)
+        data.append(file_date)
         # created_time = os.stat(file).st_ctime
         # data.append(created_time)
         list_of_files.append(data)
@@ -270,8 +281,9 @@ def find_recent_date(folder_of_files):
     print(list_of_files)
 
     df = pd.DataFrame(list_of_files, columns=['file_name', 'creation_date'])
+    print(df)
 
-    df['creation_date'] = pd.to_datetime(df['creation_date'])
+    # df['creation_date'] = pd.to_datetime(df['creation_date'])
 
     most_recent_accession_file = df['creation_date'].max()
 
@@ -280,7 +292,6 @@ def find_recent_date(folder_of_files):
     current_accession_file = most_recent_row['file_name'].tolist()[0]
 
     return current_accession_file
-
 
 def calulate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
@@ -386,7 +397,6 @@ def prepare_batch_accessions(accessions, runs):
 
     return chunks
 
-
 def downloading_and_running(method, accessions, run_num, out_dir, align):
 
     # Identify if we're processing data by downloading in batches between Extesniphy runs
@@ -438,6 +448,7 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
         print(current_alignment)
         print(out_dir + "/read_files")
         print(ep_output)
+        print("current working directory: ", os.getcwd())
         # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
         ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(ep_process.communicate())
@@ -451,6 +462,8 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
         align_rename_and_move(standard_align_path, align_outdir)
 
         current_alignment = find_recent_date(align_outdir)
+
+        exit()
 
         # Remove Extensiphy output directory and contents and prepare for next phase of loop
         try:
