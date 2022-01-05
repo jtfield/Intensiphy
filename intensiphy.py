@@ -228,7 +228,8 @@ def download_accessions(org_name, out_dir):
 
     url = 'https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=' + org_name
 
-    subprocess.run(['wget', '-O', output_file,  url])
+    dl_accessions = subprocess.Popen(['wget', '-O', output_file,  url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(dl_accessions.communicate())
 
     os.chdir(out_dir)
 
@@ -260,6 +261,7 @@ def read_csv_file(out_dir):
 def find_recent_date(folder_of_files):
     print("Finding the file with the most recent data.")
 
+    cwd = os.getcwd()
     os.chdir(folder_of_files)
 
     list_of_files = []
@@ -290,6 +292,8 @@ def find_recent_date(folder_of_files):
     most_recent_row = df.loc[df['creation_date'] == most_recent_accession_file]
 
     current_accession_file = most_recent_row['file_name'].tolist()[0]
+
+    os.chdir(cwd)
 
     return current_accession_file
 
@@ -437,40 +441,70 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
 
     os.chdir(read_dir_path)
 
-    for accessions in batches_of_accessions:
+    for num, accessions in enumerate(batches_of_accessions):
+        print("Currend Accession Batch ", accessions)
 
-        # print(accessions)
-        for single_accession in accessions:
-            # print(single_accession)
-            subprocess.run(["fasterq-dump", "--split-files", single_accession])
+        if num <= 2:
 
-        print("Extensiphy run options.")
-        print(current_alignment)
-        print(out_dir + "/read_files")
-        print(ep_output)
-        print("current working directory: ", os.getcwd())
-        # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
-        ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(ep_process.communicate())
-        # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
-        print("Extensiphy run complete.")
+            # os.chdir(out_dir + "/read_files")
+            print("current working directory: ", os.getcwd())
+            # print(accessions)
+            for single_accession in accessions:
+                # print(single_accession)
 
-        # TODO: move the output alignment and the run log file to the appropriate places
-        rm_read_files(read_dir_path)
+                print("Current accession", single_accession)
+                os.chdir(out_dir + "/read_files")
+                print("current working directory: ", os.getcwd())
+                reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                print(reads_dl.communicate())
+                os.chdir(out_dir)
+                # print("Extensiphy run options.")
+                # print(current_alignment)
+                # print(out_dir + "/read_files")
+                # print(ep_output)
+                print("current working directory: ", os.getcwd())
 
-        # Copy and rename output alignment and put it the alignments folder for the next round
-        align_rename_and_move(standard_align_path, align_outdir)
 
-        current_alignment = find_recent_date(align_outdir)
+                # os.chdir(out_dir + "/read_files")
+                # print("current working directory: ", os.getcwd())
+                # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
+                print("current working directory: ", os.getcwd())
+                ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                print(ep_process.communicate())
+                print("current working directory: ", os.getcwd())
+                # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
+                print("Extensiphy run complete.")
 
-        exit()
+                check_ep_output = os.path.isdir(ep_output)
+                if check_ep_output:
+                    print("Found EP output directory")
+                    print("current alignment ", current_alignment)
+                    print("current working directory: ", os.getcwd())
+                    # Copy and rename output alignment and put it the alignments folder for the next round
+                    align_rename_and_move(standard_align_path, align_outdir)
 
-        # Remove Extensiphy output directory and contents and prepare for next phase of loop
-        try:
-            shutil.rmtree(ep_output)
-        except OSError as e:
-            print("Error: %s : %s" % (ep_output, e.strerror))
+                    print("current working directory: ", os.getcwd())
+                    current_alignment = find_recent_date(align_outdir)
+                    print("curent alignment", current_alignment)
 
+
+                    print("current working directory: ", os.getcwd())
+                    os.rename(ep_output, ep_output + "_" + str(num))
+
+                    print("current working directory: ", os.getcwd())
+                    rm_read_files(read_dir_path)
+
+                    # Remove Extensiphy output directory and contents and prepare for next phase of loop
+                    # try:
+                    #     shutil.rmtree(ep_output)
+                    # except OSError as e:
+                    #     print("Error: %s : %s" % (ep_output, e.strerror))
+
+                elif check_ep_output == False:
+                    print("ERROR: no EP output directory was found.")
+                    exit()
+
+                print("current working directory: ", os.getcwd())
 
 def rm_read_files(out_dir):
     """Quick function to remove reads that have been used"""
