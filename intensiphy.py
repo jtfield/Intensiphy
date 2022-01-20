@@ -295,7 +295,7 @@ def find_recent_date(folder_of_files):
 
     os.chdir(cwd)
 
-    return current_accession_file
+    return folder_of_files + '/' + current_accession_file
 
 def calulate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
@@ -442,6 +442,7 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
     os.chdir(read_dir_path)
 
     for num, accessions in enumerate(batches_of_accessions):
+        print("BEGINNING NEW BATCH SECTION.")
         print("Currend Accession Batch ", accessions)
 
         if num <= 2:
@@ -450,11 +451,13 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
             print("current working directory: ", os.getcwd())
             # print(accessions)
             for single_accession in accessions:
+                print("BEGINNING EP LOOP.")
                 # print(single_accession)
 
                 print("Current accession", single_accession)
                 os.chdir(out_dir + "/read_files")
                 print("current working directory: ", os.getcwd())
+                print("current alignment ", current_alignment)
                 reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 print(reads_dl.communicate())
                 os.chdir(out_dir)
@@ -469,11 +472,13 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
                 # print("current working directory: ", os.getcwd())
                 # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-i", "CLEAN", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output])
                 print("current working directory: ", os.getcwd())
+                print("current alignment ", current_alignment)
                 ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", current_alignment, "-d", out_dir + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", ep_output], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 print(ep_process.communicate())
                 print("current working directory: ", os.getcwd())
+                print("current alignment ", current_alignment)
                 # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
-                print("Extensiphy run complete.")
+                print("Extensiphy run complete. BEGINNING PROCESSING")
 
                 check_ep_output = os.path.isdir(ep_output)
                 if check_ep_output:
@@ -505,6 +510,9 @@ def batch_download(accession_list, runs_number, out_dir, alignment):
                     exit()
 
                 print("current working directory: ", os.getcwd())
+                print("STARTING NEXT EP LOOP")
+
+def fasterq_dump_reads()
 
 def rm_read_files(out_dir):
     """Quick function to remove reads that have been used"""
