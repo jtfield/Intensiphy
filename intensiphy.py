@@ -9,7 +9,7 @@ import pandas as pd
 import subprocess
 import datetime
 import dateutil
-from modules.seq_similarity_assessment import check_sequence_similarities, check_nucs
+from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 # import tests.accessions_tests.accession_download_test
 # import tests.assembly_tests.gon_phy_test
@@ -58,8 +58,13 @@ def main():
 
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
-    split_alignment(current_align_file, absolute_output_dir_path)
+    # Split chosen alignment into individual files
+    split_alignment(current_align_file, absolute_output_dir_path + '/sequence_storage')
 
+    # Filter sequences based on similarity and log results
+    seq_compare(absolute_output_dir_path + '/sequence_storage')
+
+    quit()
     # download_accessions(args.organism, args.ep_out_dir)
 
     # read_file = read_csv_file(args.accession_csv)
@@ -74,8 +79,8 @@ def main():
 
 
     # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
-    if not remove_paired_dupes.empty:
-        process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
+    # if not remove_paired_dupes.empty:
+    #     process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file)
 
 def reset_tests():
     """Function to reset test outputs so this isn't done by hand each time"""
@@ -109,6 +114,7 @@ def check_dir_exists(dir_name):
         assert os.path.isdir(dir_name + "/alignments")
         assert os.path.isdir(dir_name + "/accession_files")
         assert os.path.isdir(dir_name + "/sequence_storage")
+        assert os.path.isdir(dir_name + "/similarity_logs")
 
         return does_dir_exist
 
@@ -119,12 +125,14 @@ def check_dir_exists(dir_name):
         subprocess.run(["mkdir", dir_name + "/alignments"])
         subprocess.run(["mkdir", dir_name + "/accession_files"])
         subprocess.run(["mkdir", dir_name + "/sequence_storage"])
+        subprocess.run(["mkdir", dir_name + "/similarity_logs"])
 
         assert os.path.isdir(dir_name + "/read_files")
         assert os.path.isdir(dir_name + "/run_log_files")
         assert os.path.isdir(dir_name + "/alignments")
         assert os.path.isdir(dir_name + "/accession_files")
         assert os.path.isdir(dir_name + "/sequence_storage")
+        assert os.path.isdir(dir_name + "/similarity_logs")
 
         return does_dir_exist
 
@@ -193,11 +201,6 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
 
             return current_alignment
 
-def split_seqs(aln_file):
-    """Function to split sequences into separate sequences for easier storage and
-        sequence similarity assessments"""
-
-    # Run split seq module
 
 def restructure_dates(file_name):
     """Reads a file name with a date structured as Intensiphy produces them and restructures the included date for parsing of most recent file"""
