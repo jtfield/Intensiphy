@@ -9,8 +9,10 @@ import pandas as pd
 import subprocess
 import datetime
 import dateutil
-import tests.accessions_tests.accession_download_test
-import tests.assembly_tests.gon_phy_test
+from modules.seq_similarity_assessment import check_sequence_similarities, check_nucs
+from modules.alignment_splitter import split_alignment
+# import tests.accessions_tests.accession_download_test
+# import tests.assembly_tests.gon_phy_test
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
@@ -24,6 +26,8 @@ def parse_args():
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
          would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
+    parser.add_argument('--sim', type=float, nargs='1', help='sequence similarity cutoff to exclude sequences from the alignment. \
+        When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
     return parser.parse_args()
@@ -34,6 +38,9 @@ def main():
     ref_taxon = ""
 
     # reset_tests()
+
+    # calculate the core organization to pass to Extensiphy
+    get_cores = calulate_cores(args.cores)
 
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit
@@ -51,8 +58,7 @@ def main():
 
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
-    # calculate the core organization to pass to Extensiphy
-    get_cores = calulate_cores(args.cores)
+    split_alignment(current_align_file, absolute_output_dir_path)
 
     # download_accessions(args.organism, args.ep_out_dir)
 
@@ -102,6 +108,7 @@ def check_dir_exists(dir_name):
         assert os.path.isdir(dir_name + "/run_log_files")
         assert os.path.isdir(dir_name + "/alignments")
         assert os.path.isdir(dir_name + "/accession_files")
+        assert os.path.isdir(dir_name + "/sequence_storage")
 
         return does_dir_exist
 
@@ -111,11 +118,13 @@ def check_dir_exists(dir_name):
         subprocess.run(["mkdir", dir_name + "/run_log_files"])
         subprocess.run(["mkdir", dir_name + "/alignments"])
         subprocess.run(["mkdir", dir_name + "/accession_files"])
+        subprocess.run(["mkdir", dir_name + "/sequence_storage"])
 
         assert os.path.isdir(dir_name + "/read_files")
         assert os.path.isdir(dir_name + "/run_log_files")
         assert os.path.isdir(dir_name + "/alignments")
         assert os.path.isdir(dir_name + "/accession_files")
+        assert os.path.isdir(dir_name + "/sequence_storage")
 
         return does_dir_exist
 
@@ -183,6 +192,12 @@ def get_most_recent_align(run_bool, starting_align, output_dir_path):
             current_alignment = align_rename_and_move(starting_align, output_dir_path + "/alignments")
 
             return current_alignment
+
+def split_seqs(aln_file):
+    """Function to split sequences into separate sequences for easier storage and
+        sequence similarity assessments"""
+
+    # Run split seq module
 
 def restructure_dates(file_name):
     """Reads a file name with a date structured as Intensiphy produces them and restructures the included date for parsing of most recent file"""
