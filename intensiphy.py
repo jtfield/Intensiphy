@@ -62,7 +62,7 @@ def main():
     split_alignment(current_align_file, absolute_output_dir_path + '/sequence_storage')
 
     # Filter sequences based on similarity and log results
-    seq_compare(absolute_output_dir_path + '/sequence_storage')
+    seq_compare(absolute_output_dir_path + '/sequence_storage', dir_existence)
 
     quit()
     # download_accessions(args.organism, args.ep_out_dir)
