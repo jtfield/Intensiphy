@@ -7,7 +7,7 @@ import pandas as pd
 
 def check_sequence_similarities(_seq_1, _seq_2):
     """Checks similarity of two sequences"""
-    print("waffle")
+    # print("waffle")
 
     # standard_nucleotides = ['A', 'C', 'G', 'T']
     # gaps = ['-']
@@ -101,9 +101,9 @@ def seq_compare(working_dir, suffix, df):
 
         # Loop over every file that isnt the current file
         for file_2 in os.listdir(seqs_dir):
-            print("CHECK!!!")
-            print(file_1)
-            print(file_2)
+            # print("CHECK!!!")
+            # print(file_1)
+            # print(file_2)
             if file_1 != file_2:
                 # print("CHECK!!!")
                 # print(file_1)
@@ -149,17 +149,20 @@ def build_or_update_df(working_dir, run_bool, suffix):
         taxon_names.append(clean_name)
 
     df = ''
-    if run_bool:
+    if run_bool == False:
         df = build_sim_table(taxon_names)
 
-    else:
+    elif run_bool:
         df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv', sep=',')
 
         df = check_duplicates(taxon_names, df)
 
     # Compare all files and add values to the df
     output = seq_compare(working_dir, suffix, df)
-    print(df)
+
+    df.to_csv(working_dir + '/similarity_logs/sims_database.csv', sep=',')
+
+    # print(df)
 
 def check_duplicates(taxon_list, df):
     """Check if names already exist in the df. If not, add them and return df"""

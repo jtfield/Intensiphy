@@ -25,8 +25,8 @@ def parse_args():
         (OPTIONS: USER_INPUT, AUTO_DL, AUTO_PATHDB), (DEFAULT: AUTO_DL)')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
-         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
-    parser.add_argument('--sim', type=float, nargs='1', help='sequence similarity cutoff to exclude sequences from the alignment. \
+        would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
+    parser.add_argument('--sim', type=float, help='sequence similarity cutoff to exclude sequences from the alignment. \
         When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
     parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
         of fastq files instead of continuous downloading.')
@@ -58,11 +58,12 @@ def main():
 
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
-    # Split chosen alignment into individual files
-    split_alignment(current_align_file, absolute_output_dir_path + '/sequence_storage')
+    if dir_existence == False:
+        # Split chosen alignment into individual files
+        split_alignment(current_align_file, absolute_output_dir_path + '/sequence_storage')
 
-    # Filter sequences based on similarity and log results
-    seq_compare(absolute_output_dir_path + '/sequence_storage', dir_existence)
+        # Filter sequences based on similarity and log results
+        df = build_or_update_df(absolute_output_dir_path, dir_existence, '_.fas')
 
     quit()
     # download_accessions(args.organism, args.ep_out_dir)
