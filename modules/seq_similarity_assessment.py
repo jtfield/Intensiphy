@@ -3,6 +3,7 @@
 import os
 import argparse
 import pathlib
+import numpy as np
 import pandas as pd
 
 def check_sequence_similarities(_seq_1, _seq_2):
@@ -183,18 +184,44 @@ def check_duplicates(taxon_list, df):
 
     return df
 
-def make_keep_decision(coverage_dict):
+def make_keep_decision(coverage_dict, taxon_list):
     """Reads the dictionary containing similarity coverage. \
     Makes decision on which sequences to keep and which to remove"""
     keep_list = []
     cov_rank_dict = {}
-    sorted_coverage_list = []
+    coverage_list = []
+    intermediate_keep_list = []
 
     for key, value in coverage_dict.items():
         num_covered_taxa = len(value)
-        sorted_coverage_list.append(num_covered_taxa)
+        # print(num_covered_taxa)
+        coverage_list.append(num_covered_taxa)
+        if num_covered_taxa in cov_rank_dict.keys():
+            cov_rank_dict[num_covered_taxa].append(key)
+        else:
 
-    sorted_coverage_list = sorted_coverage_list.sort()
+            cov_rank_dict[num_covered_taxa] = []
+            cov_rank_dict[num_covered_taxa].append(key)
+
+    set_cov = set(coverage_list)
+    sorted_cov = list(set_cov)
+    sorted_cov.sort()
+
+    # print(sorted_cov)
+    # print(cov_rank_dict)
+
+    # Loop over the coverage list in reverse
+    # Check if all the sequences
+
+    for coverage_level in sorted_cov[::-1]:
+        current_taxa = cov_rank_dict[coverage_level]
+        # print(current_taxa)
+        for taxon in current_taxa:
+            print(taxon)
+            print(coverage_dict[taxon])
+
+
+
 
 
 
@@ -218,7 +245,7 @@ def check_sims_and_remove(working_dir, cutoff):
 
     similarity_coverage_dict = check_pairing(sub_df)
 
-    keep_seqs = make_keep_decision(similarity_coverage_dict)
+    keep_seqs = make_keep_decision(similarity_coverage_dict, taxa)
 
 
     # print(sub_df)
@@ -234,7 +261,7 @@ def check_pairing(df):
             if taxon_1 != taxon_2:
                 sim_value = df.at[taxon_1, taxon_2]
                 if sim_value > 0:
-                    print(taxon_1 + " " + taxon_2)
+                    # print(taxon_1 + " " + taxon_2)
                     if taxon_1 not in output_dict.keys():
                         output_dict[taxon_1] = []
                         output_dict[taxon_1].append(taxon_2)
