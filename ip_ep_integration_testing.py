@@ -11,6 +11,10 @@ import subprocess
 # import dateutil
 # import tests.accessions_tests.accession_download_test
 # import tests.assembly_tests.gon_phy_test
+# import sys
+# sys.path.append('./modules')
+# import modules.seq_similarity_assessment.py
+# import modules.alignment_splitter.py
 from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 
@@ -52,7 +56,9 @@ def main():
 
     # split_alignment(alignment, ep_outdir)
 
-    build_or_update_df(ep_outdir, True, '_.fas')
+    build_or_update_df(ep_outdir, False, '_.fas')
+
+    check_sims_and_remove(ep_outdir, .99)
 
     # seq_compare(ep_outdir, '_.fas', None)
 

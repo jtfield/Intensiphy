@@ -153,7 +153,7 @@ def build_or_update_df(working_dir, run_bool, suffix):
         df = build_sim_table(taxon_names)
 
     elif run_bool:
-        df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv', sep=',')
+        df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv', sep=',', index_col=0)
 
         df = check_duplicates(taxon_names, df)
 
@@ -182,3 +182,64 @@ def check_duplicates(taxon_list, df):
             df[name] = np.nan
 
     return df
+
+def make_keep_decision(coverage_dict):
+    """Reads the dictionary containing similarity coverage. \
+    Makes decision on which sequences to keep and which to remove"""
+    keep_list = []
+    cov_rank_dict = {}
+    sorted_coverage_list = []
+
+    for key, value in coverage_dict.items():
+        num_covered_taxa = len(value)
+        sorted_coverage_list.append(num_covered_taxa)
+
+    sorted_coverage_list = sorted_coverage_list.sort()
+
+
+
+
+def check_sims_and_remove(working_dir, cutoff):
+    """Assess similarities in database and decide which sequences to remove"""
+
+    # Read similarities df
+    df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv', sep=',', index_col=0)
+
+
+    # Get list of taxa from the df columns
+    taxa = list(df.columns)
+    #
+    df = df.fillna(0)
+    # print(df)
+
+    # make a copy of the df, subtracting the cutoff value from each similarity
+    sub_df = df.apply(lambda x: x - cutoff)
+    # print(sub_df)
+
+    similarity_coverage_dict = check_pairing(sub_df)
+
+    keep_seqs = make_keep_decision(similarity_coverage_dict)
+
+
+    # print(sub_df)
+
+def check_pairing(df):
+    """Function to get the taxon pairs and check if any beat the cutoff"""
+    taxa = list(df.columns)
+
+    output_dict = {}
+
+    for taxon_1 in taxa:
+        for taxon_2 in taxa:
+            if taxon_1 != taxon_2:
+                sim_value = df.at[taxon_1, taxon_2]
+                if sim_value > 0:
+                    print(taxon_1 + " " + taxon_2)
+                    if taxon_1 not in output_dict.keys():
+                        output_dict[taxon_1] = []
+                        output_dict[taxon_1].append(taxon_2)
+                    else:
+                        if taxon_2 not in output_dict[taxon_1]:
+                            output_dict[taxon_1].append(taxon_2)
+
+    return output_dict

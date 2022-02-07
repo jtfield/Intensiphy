@@ -9,6 +9,10 @@ import pandas as pd
 import subprocess
 import datetime
 import dateutil
+# import sys
+# sys.path.append('./modules')
+# import modules.seq_similarity_assessment
+# import modules.alignment_splitter
 from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 # import tests.accessions_tests.accession_download_test
@@ -40,25 +44,31 @@ def main():
     # reset_tests()
 
     # calculate the core organization to pass to Extensiphy
+    print("Assessing allocated cores.")
     get_cores = calulate_cores(args.cores)
 
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit
     # a repeating run.
     # Returns True if output dir exists already and False if output dir doesn't exist prior to execution.
+    print("Checking if this is a new run or a continuing run.")
     dir_existence = check_dir_exists(args.ep_out_dir)
 
     os.chdir(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
 
     # download_accessions(args.organism, args.ep_out_dir)
+    print("Working out how to handle getting accession numbers.")
     accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
 
+    print("Working out what kind of alignment we're using.")
     make_align(dir_existence, absolute_output_dir_path, args.accs_file, args.align_file)
 
+    print("Finding current reference sequence.")
     current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
     if dir_existence == False:
+        print("New run detected. Splitting alignment and making sequence similarity comparisons.")
         # Split chosen alignment into individual files
         split_alignment(current_align_file, absolute_output_dir_path + '/sequence_storage')
 
