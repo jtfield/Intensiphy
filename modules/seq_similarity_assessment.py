@@ -96,7 +96,7 @@ def seq_compare(working_dir, suffix, df):
     # else:
     #     df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv')
 
-    print(os.listdir(seqs_dir))
+    # print(os.listdir(seqs_dir))
     # Loop over every file
     for file_1 in os.listdir(seqs_dir):
 
@@ -221,6 +221,8 @@ def make_keep_decision(coverage_dict, taxon_list):
     #         print(coverage_dict[taxon])
     keep_these_taxa = keep_logic_gate(sorted_cov, cov_rank_dict, coverage_dict, keep_list, taxon_list)
 
+    return keep_these_taxa
+
 def keep_logic_gate(sorted_coverage_list, coverage_rank_dict, cov_dict, primary_keep_list, tax_list):
     """Final logic checks on which sequences are covered by other sequences"""
     # print(sorted_coverage_list)
@@ -292,6 +294,8 @@ def check_sims_and_remove(working_dir, cutoff):
     similarity_coverage_dict = check_pairing(sub_df)
 
     keep_seqs = make_keep_decision(similarity_coverage_dict, taxa)
+
+    return keep_seqs
 
 
     # print(sub_df)
