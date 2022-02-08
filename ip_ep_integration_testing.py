@@ -17,14 +17,17 @@ import subprocess
 # import modules.alignment_splitter.py
 from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
+from modules.fetch_and_align import *
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
-    parser.add_argument('--align_file', default=False, help='input alignment option. \
+    # parser.add_argument('--align_file', default=False, help='input alignment option. \
     #     If an alignment is added using this option, samples will be added to this alignment.')
     # parser.add_argument('--read_dir', help='Directory of reads')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
+    parser.add_argument('--acc_file', help='accession file')
+    parser.add_argument('--ds_alloc', help='disk space Allocated')
     # parser.add_argument('--ep_path', help='Path to extensiphy folder.')
     # parser.add_argument('--seq_1_file', help='Path to file one.')
     # parser.add_argument('--seq_2_file', help='Path to file two.')
@@ -35,9 +38,10 @@ def main():
 
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     # ep_path = args.ep_path
-    alignment = args.align_file
+    # alignment = args.align_file
     # read_dir = args.read_dir
     ep_outdir = args.ep_out_dir
+
     #####################################################################
     # file_1 = args.seq_1_file
     # file_2 = args.seq_2_file
@@ -56,11 +60,21 @@ def main():
 
     # split_alignment(alignment, ep_outdir)
 
-    build_or_update_df(ep_outdir, False, '_.fas')
-
-    check_sims_and_remove(ep_outdir, .99)
+    # build_or_update_df(ep_outdir, False, '_.fas')
+    #
+    # check_sims_and_remove(ep_outdir, .99)
 
     # seq_compare(ep_outdir, '_.fas', None)
+
+
+    #read list of accessions
+    read_accessions = read_csv_file(args.ep_out_dir)
+
+    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+    # remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+    # remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+
+    download_chunk(args.ep_out_dir, read_accessions, args.ds_alloc)
 
 if __name__ == '__main__':
     main()

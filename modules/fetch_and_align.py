@@ -9,6 +9,7 @@ import pandas as pd
 import subprocess
 import datetime
 import dateutil
+import re
 
 def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
     """If this is the start of a run (no output folder existed prior to starting this run) \
@@ -287,12 +288,36 @@ def align_rename_and_move(align, outdir):
 
     return new_align_name
 
-def prepare_batch_accessions(accessions, runs):
-    """Return a list of lists containing the number of files to download before each Extensiphy run"""
-    print("building batch accession numbers download plan.")
-    chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
+# def prepare_batch_accessions(accessions, runs):
+#     """Return a list of lists containing the number of files to download before each Extensiphy run"""
+#     print("building batch accession numbers download plan.")
+#     chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
+#
+#     return chunks
 
-    return chunks
+def download_chunk(out_dir, accessions, ds_alloc):
+    """Downloads raw read files and checks if the allocated disk space has been met \
+    if not, download files until this limit is met"""
+    total_memory_size = 0
+    accession_count = 0
+    run_ids = []
+    for name, value in accessions['Run'].iteritems():
+        run_ids.append(value)
+
+    while total_memory_size < ds_alloc and accession_count < len(accessions):
+        single_accession = run_ids[accession_count]
+        print(single_accession)
+
+
+
+
+def fasterq_dump_reads(out_dir_, single_accession_):
+    os.chdir(out_dir_ + "/read_files")
+    # print("current working directory: ", os.getcwd())
+    # print("current alignment ", current_alignment)
+    reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(reads_dl.communicate())
+    # os.chdir(out_dir_)
 
 def downloading_and_running(method, accessions, run_num, out_dir, align, alloc_disk_space):
 
