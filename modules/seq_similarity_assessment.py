@@ -213,12 +213,58 @@ def make_keep_decision(coverage_dict, taxon_list):
     # Loop over the coverage list in reverse
     # Check if all the sequences
 
-    for coverage_level in sorted_cov[::-1]:
-        current_taxa = cov_rank_dict[coverage_level]
+    # for coverage_level in sorted_cov[::-1]:
+    #     current_taxa = cov_rank_dict[coverage_level]
+    #     # print(current_taxa)
+    #     for taxon in current_taxa:
+    #         print(taxon)
+    #         print(coverage_dict[taxon])
+    keep_these_taxa = keep_logic_gate(sorted_cov, cov_rank_dict, coverage_dict, keep_list, taxon_list)
+
+def keep_logic_gate(sorted_coverage_list, coverage_rank_dict, cov_dict, primary_keep_list, tax_list):
+    """Final logic checks on which sequences are covered by other sequences"""
+    # print(sorted_coverage_list)
+    # print(coverage_rank_dict)
+    # print(cov_dict)
+    # print(tax_list)
+
+    added_levels = []
+    checked_covering_taxa = []
+    intermediate_list = []
+    for coverage_level in sorted_coverage_list[::-1]:
+        current_taxa = coverage_rank_dict[coverage_level]
         # print(current_taxa)
         for taxon in current_taxa:
-            print(taxon)
-            print(coverage_dict[taxon])
+            # print(taxon)
+            # print(cov_dict[taxon])
+            if coverage_level not in added_levels:
+                added_levels.append(coverage_level)
+                intermediate_list.append(taxon)
+                checked_covering_taxa.append(taxon)
+                # checked_covering_taxa.append(taxon)
+                for covered_taxon in cov_dict[taxon]:
+                    # if covered_taxon not in intermediate_list:
+                    #     intermediate_list.append(covered_taxon)
+                    if covered_taxon not in intermediate_list:
+                        intermediate_list.append(covered_taxon)
+
+    added_levels.sort()
+
+    if added_levels == sorted_coverage_list:
+        print("loop complete")
+        present_taxa = 0
+        for taxon in tax_list:
+            if taxon in intermediate_list:
+                present_taxa+=1
+            else:
+                print(taxon)
+                checked_covering_taxa.append(taxon)
+    print(checked_covering_taxa)
+
+    return checked_covering_taxa
+
+
+
 
 
 
