@@ -6,7 +6,10 @@ import subprocess
 import time
 # import pytest
 import pandas as pd
-from ...modules.alignment_splitter import split_alignment
+# from ...modules.alignment_splitter import split_alignment
+import sys
+sys.path.append('../modules')
+from alignment_splitter import split_alignment
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='align_splitter test', \
