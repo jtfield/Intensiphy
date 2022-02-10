@@ -19,6 +19,16 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
         print("Input alignment detected.")
         print("Skipping de novo alignment production.")
 
+        abs_align_path = os.path.realpath(alignment_var)
+        #
+        symlink_file = pathlib.Path(abs_align_path)
+
+        new_align = output_dir_path + '/intermediate_files/alignment.fas'
+        new_align = pathlib.Path(new_align)
+
+        new_align.symlink_to(symlink_file)
+
+
     if alignment_var == False:
         #Test!
         # tests.assembly_tests.gon_phy_test.test_build_alignment()
@@ -58,23 +68,55 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
 
                     symlink_align(output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path)
 
-def get_most_recent_align(run_bool, starting_align, output_dir_path):
-    """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
-        or if the output dir doesn't exist yet (indicating the starting phase of a run)."""
-    print("Processing alignment input options.")
-    if starting_align == False:
+# def get_most_recent_align(run_bool, starting_align, output_dir_path):
+#     """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
+#         or if the output dir doesn't exist yet (indicating the starting phase of a run)."""
+#     print("Processing alignment input options.")
+#     if starting_align == False:
+#
+#         current_alignment = find_recent_date(output_dir_path + "/alignments")
+#
+#         return current_alignment
+#
+#     else:
+#         if starting_align != False:
+#
+#             # current_alignment = symlink_align(starting_align, output_dir_path)
+#             current_alignment = align_rename_and_move(starting_align, output_dir_path + "/alignments")
+#
+#             return current_alignment
 
-        current_alignment = find_recent_date(output_dir_path + "/alignments")
+def select_ref(ref_var, output_dir_path):
+    """Small function to handle a user input reference or making the choice of reference automatically"""
+    sep_file_path = output_dir_path + '/sequence_storage'
 
-        return current_alignment
+    individual_seq_folders = os.listdir(sep_file_path)
 
-    else:
-        if starting_align != False:
+    if ref_var == False:
+        reference_dir = individual_seq_folders[0]
+        ref_dir_path = sep_file_path + '/' + reference_dir
 
-            # current_alignment = symlink_align(starting_align, output_dir_path)
-            current_alignment = align_rename_and_move(starting_align, output_dir_path + "/alignments")
+        ref_dir_files = os.listdir(ref_dir_path)
+        for file in ref_dir_files:
+            # print(file)
+            if '.fas' in file:
+                shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
 
-            return current_alignment
+    elif ref_var != False:
+
+        ref_name = ref_var
+        for name in individual_seq_folders:
+            if name == ref_name:
+                ref_dir_path = sep_file_path + '/' + name
+
+                ref_dir_files = os.listdir(ref_dir_path)
+                for file in ref_dir_files:
+                    # print(file)
+                    if '.fas' in file:
+                        shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
+
+
+
 
 
 def restructure_dates(file_name):
@@ -239,36 +281,34 @@ def check_duplicate_accesions(accession_db, fasta_names):
 
     return copy_df
 
-def read_fasta_names(_align, _outdir):
+
+def prepare_batch_accessions(accessions, runs):
+    """Return a list of lists containing the number of files to download before each Extensiphy run"""
+    print("building batch accession numbers download plan.")
+    run_ids = []
+
+    for name, value in accessions['Run'].iteritems():
+        run_ids.append(value)
+
+    chunks = [run_ids[x:x+runs] for x in range(0, len(run_ids), runs)]
+
+    return chunks
+
+
+def read_fasta_names(_outdir):
     """Reads the names of the sequences from the fasta file."""
     print("Getting taxa labels from the current alignment file.")
     names = []
 
-    with open(_align, 'r') as fasta_file:
-        for line in fasta_file:
-            if line.startswith('>'):
-                seq_name = line.strip(">").strip('\n')
-                assert len(seq_name) > 1
-                assert type(seq_name) == str
-                names.append(seq_name)
+    sep_file_path = _outdir + '/sequence_storage'
+
+    individual_seq_folders = os.listdir(sep_file_path)
+
+    for name in individual_seq_folders:
+        names.append(name)
 
     return names
 
-def symlink_align(align, outdir):
-    print("Linking provided alignment to Intensiphy output folder.")
-
-    now = datetime.datetime.now()
-
-    # Symlink the alignment file into the alignments folder
-    abs_align_path = os.path.realpath(align)
-
-    new_align_name = outdir + '/alignments/msa_' + now.strftime('%Y-%m-%d')
-
-    symlink_file = pathlib.Path(new_align_name)
-
-    symlink_file.symlink_to(abs_align_path)
-
-    return new_align_name
 
 def align_rename_and_move(align, outdir):
     print("Moving and renaming alignment to currespond to its construction time.")
@@ -295,18 +335,18 @@ def align_rename_and_move(align, outdir):
 #
 #     return chunks
 
-def download_chunk(out_dir, accessions, ds_alloc):
-    """Downloads raw read files and checks if the allocated disk space has been met \
-    if not, download files until this limit is met"""
-    total_memory_size = 0
-    accession_count = 0
-    run_ids = []
-    for name, value in accessions['Run'].iteritems():
-        run_ids.append(value)
-
-    while total_memory_size < ds_alloc and accession_count < len(accessions):
-        single_accession = run_ids[accession_count]
-        print(single_accession)
+# def download_chunk(out_dir, accessions, ds_alloc):
+#     """Downloads raw read files and checks if the allocated disk space has been met \
+#     if not, download files until this limit is met"""
+#     total_memory_size = 0
+#     accession_count = 0
+#     run_ids = []
+#     for name, value in accessions['Run'].iteritems():
+#         run_ids.append(value)
+#
+#     while total_memory_size < ds_alloc and accession_count < len(accessions):
+#         single_accession = run_ids[accession_count]
+#         print(single_accession)
 
 
 
@@ -317,33 +357,52 @@ def fasterq_dump_reads(out_dir_, single_accession_):
     # print("current alignment ", current_alignment)
     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print(reads_dl.communicate())
-    # os.chdir(out_dir_)
+    os.chdir(out_dir_)
 
-def downloading_and_running(method, accessions, run_num, out_dir, align, alloc_disk_space):
+def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
+    """Take batched accessions, download for each batch and run EP. Then split up the alignment and remove the original folder"""
+    ref = out_dir +'/intermediate_files/reference.fas'
 
-    # Identify if we're processing data by downloading in batches between Extesniphy runs
-    # or by downloading everything all at once and running extensiphy after
-    print("Beginning bulk downloading data and updating alignment using Extensiphy.")
-    # pull accessions from df
-    run_ids = []
-    for name, value in accessions['Run'].iteritems():
-        run_ids.append(value)
+    for accession_batch in accessions:
+        print(accession_batch)
+        print("++++")
+        for num, accession in enumerate(accession_batch):
+            print("+++++++")
+            print(accession)
+            fasterq_dump_reads(out_dir, accession)
 
-    if method == False:
-        # continuous gradual downloading of data has been selected/left as default.
-        batches_run = batch_download(run_ids, run_num[0], out_dir, align)
+        if pair_or_not_toggle == "PAIRED":
 
-    elif method:
-        # Bulk download all fastq files before running Extensiphy
-        bulk_run = bulk_download(run_ids, out_dir)
+            print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
+            subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+            print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
-        print("Bulk data download complete.")
-        print("Beginning Extensiphy run to update your alignment.")
+        exit()
 
-        os.chdir(out_dir)
 
-        # TODO: specify cleanup of intermediate files in all runs
-        subprocess.run(["multi_map.sh", "-a", align, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(run_num[0]) ,"-c", str(run_num[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
+    # # Identify if we're processing data by downloading in batches between Extesniphy runs
+    # # or by downloading everything all at once and running extensiphy after
+    # print("Beginning bulk downloading data and updating alignment using Extensiphy.")
+    # # pull accessions from df
+    # run_ids = []
+    # for name, value in accessions['Run'].iteritems():
+    #     run_ids.append(value)
+    #
+    # if method == False:
+    #     # continuous gradual downloading of data has been selected/left as default.
+    #     batches_run = batch_download(run_ids, run_num[0], out_dir, align)
+    #
+    # elif method:
+    #     # Bulk download all fastq files before running Extensiphy
+    #     bulk_run = bulk_download(run_ids, out_dir)
+    #
+    #     print("Bulk data download complete.")
+    #     print("Beginning Extensiphy run to update your alignment.")
+    #
+    #     os.chdir(out_dir)
+    #
+    #     # TODO: specify cleanup of intermediate files in all runs
+    #     subprocess.run(["multi_map.sh", "-a", align, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(run_num[0]) ,"-c", str(run_num[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
 
 def batch_download(accession_list, runs_number, out_dir, alignment):
     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""

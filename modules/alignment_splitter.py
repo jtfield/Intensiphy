@@ -30,8 +30,12 @@ def split_alignment(align_file, output_dir):
             seq = split_chunk[1]
             seq = seq.replace('\n','')
 
+            # make directory to hold files associated with this taxon
+            dir_path = output_dir + '/' + name
+            os.mkdir(dir_path)
+
             # separated sequences to individual files
-            output = open(output_dir + '/' + name + '_.fas', 'w')
+            output = open(dir_path + '/' + name + '_.fas', 'w')
             output.write('>' + name)
             output.write('\n')
             output.write(seq)

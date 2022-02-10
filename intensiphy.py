@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
+    parser.add_argument('--ref', default=False, type=str, help='reference sequence label (without suffix or file ending information). (Example: SRR1500345)')
     parser.add_argument('--sim', type=float, help='sequence similarity cutoff to exclude sequences from the alignment. \
         When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
     parser.add_argument('--ds', type=int, help='Allocated disk space Intensiphy can use.')
@@ -58,16 +59,49 @@ def main():
 
     os.chdir(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
-
-    # download_accessions(args.organism, args.ep_out_dir)
-    print("Working out how to handle getting accession numbers.")
+    #
+    # # download_accessions(args.organism, args.ep_out_dir)
+    # print("Working out how to handle getting accession numbers.")
     accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
 
     print("Working out what kind of alignment we're using.")
-    make_align(dir_existence, absolute_output_dir_path, args.accs_file, args.align_file)
+    if dir_existence == False:
 
-    print("Finding current reference sequence.")
-    current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
+        make_align(dir_existence, absolute_output_dir_path, args.accs_file, args.align_file)
+
+
+        split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
+
+    select_ref(args.ref, absolute_output_dir_path)
+
+    read_fasta = read_fasta_names(absolute_output_dir_path)
+
+    #read list of accessions
+    read_accessions = read_csv_file(args.ep_out_dir)
+
+    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+    remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+    remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+
+    paired_batch_accessions = prepare_batch_accessions(remove_paired_dupes, get_cores[0])
+    single_batch_accessions = prepare_batch_accessions(remove_single_dupes, get_cores[0])
+
+    # print(paired_batch_accessions)
+    # print(single_batch_accessions)
+
+    if not remove_paired_dupes.empty:
+        process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")
+
+
+
+
+
+
+
+
+    #
+    # print("Finding current reference sequence.")
+    # current_align_file = get_most_recent_align(dir_existence, args.align_file, absolute_output_dir_path)
 
     # if dir_existence == False:
     #     print("New run detected. Splitting alignment and making sequence similarity comparisons.")
@@ -81,20 +115,20 @@ def main():
 
     # download_accessions(args.organism, args.ep_out_dir)
 
-    # read_file = read_csv_file(args.accession_csv)
-    read_fasta = read_fasta_names(current_align_file, absolute_output_dir_path)
-
-    #read list of accessions
-    read_accessions = read_csv_file(args.ep_out_dir)
-
-    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
-    remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
-    remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
-
-    quit()
-    # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
-    # if not remove_paired_dupes.empty:
-        process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file, args.ds)
+    # # read_file = read_csv_file(args.accession_csv)
+    # read_fasta = read_fasta_names(current_align_file, absolute_output_dir_path)
+    #
+    # #read list of accessions
+    # read_accessions = read_csv_file(args.ep_out_dir)
+    #
+    # #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+    # remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+    # remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+    #
+    # quit()
+    # # Handle how we'll download SRA files: big batch or continuously while running Extensiphy
+    # # if not remove_paired_dupes.empty:
+    #     process_data = downloading_and_running(args.b, remove_paired_dupes, get_cores, args.ep_out_dir, args.align_file, args.ds)
 
 # def reset_tests():
 #     """Function to reset test outputs so this isn't done by hand each time"""
@@ -125,10 +159,10 @@ def check_dir_exists(dir_name):
 
         assert os.path.isdir(dir_name + "/read_files")
         assert os.path.isdir(dir_name + "/run_log_files")
-        assert os.path.isdir(dir_name + "/alignments")
+        assert os.path.isdir(dir_name + "/intermediate_files")
         assert os.path.isdir(dir_name + "/accession_files")
         assert os.path.isdir(dir_name + "/sequence_storage")
-        assert os.path.isdir(dir_name + "/similarity_logs")
+        # assert os.path.isdir(dir_name + "/similarity_logs")
 
         return does_dir_exist
 
@@ -136,17 +170,17 @@ def check_dir_exists(dir_name):
         subprocess.run(["mkdir", dir_name])
         subprocess.run(["mkdir", dir_name + "/read_files"])
         subprocess.run(["mkdir", dir_name + "/run_log_files"])
-        subprocess.run(["mkdir", dir_name + "/alignments"])
+        subprocess.run(["mkdir", dir_name + "/intermediate_files"])
         subprocess.run(["mkdir", dir_name + "/accession_files"])
         subprocess.run(["mkdir", dir_name + "/sequence_storage"])
-        subprocess.run(["mkdir", dir_name + "/similarity_logs"])
+        # subprocess.run(["mkdir", dir_name + "/similarity_logs"])
 
         assert os.path.isdir(dir_name + "/read_files")
         assert os.path.isdir(dir_name + "/run_log_files")
-        assert os.path.isdir(dir_name + "/alignments")
+        assert os.path.isdir(dir_name + "/intermediate_files")
         assert os.path.isdir(dir_name + "/accession_files")
         assert os.path.isdir(dir_name + "/sequence_storage")
-        assert os.path.isdir(dir_name + "/similarity_logs")
+        # assert os.path.isdir(dir_name + "/similarity_logs")
 
         return does_dir_exist
 
