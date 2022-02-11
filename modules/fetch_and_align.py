@@ -10,6 +10,8 @@ import subprocess
 import datetime
 import dateutil
 import re
+from modules.alignment_splitter import split_alignment
+
 
 def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
     """If this is the start of a run (no output folder existed prior to starting this run) \
@@ -268,29 +270,44 @@ def check_duplicate_accesions(accession_db, fasta_names):
     """Checks the alignment file vs the accesion list
     and produces a list of accessions that are already in the alignment."""
     print("Checking for accessions already present in alignment")
+    sras_to_keep = []
 
-    copy_df = accession_db.copy()
+    sra_ids = accession_db['Run'].tolist()
+    print("Starting list of sras ", sra_ids)
+    # print(fasta_names)
+    if len(sra_ids) != 0:
+        for num, name in enumerate(sra_ids):
+            if name not in fasta_names:
+                sras_to_keep.append(name)
 
-    for name, value in accession_db['Run'].iteritems():
-        if value in fasta_names:
-            assert type(value) == str
-            assert len(value) > 1
-            copy_df.drop(name)
-            print(name)
-            print(value)
+    print("Dupes removed list of sras ", sras_to_keep)
+    return sras_to_keep
 
-    return copy_df
+
+    # copy_df = accession_db.copy()
+    #
+    # for name, value in accession_db['Run'].iteritems():
+    #     if value in fasta_names:
+    #         assert type(value) == str
+    #         assert len(value) > 1
+    #         copy_df.drop(name)
+    #         print(name)
+    #         print(value)
+    #
+    # print(copy_df)
+    #
+    # return copy_df
 
 
 def prepare_batch_accessions(accessions, runs):
     """Return a list of lists containing the number of files to download before each Extensiphy run"""
     print("building batch accession numbers download plan.")
-    run_ids = []
+    # run_ids = []
+    #
+    # for name, value in accessions['Run'].iteritems():
+    #     run_ids.append(value)
 
-    for name, value in accessions['Run'].iteritems():
-        run_ids.append(value)
-
-    chunks = [run_ids[x:x+runs] for x in range(0, len(run_ids), runs)]
+    chunks = [accessions[x:x+runs] for x in range(0, len(accessions), runs)]
 
     return chunks
 
@@ -362,10 +379,12 @@ def fasterq_dump_reads(out_dir_, single_accession_):
 def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
     """Take batched accessions, download for each batch and run EP. Then split up the alignment and remove the original folder"""
     ref = out_dir +'/intermediate_files/reference.fas'
+    ep_output_align = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
 
     for accession_batch in accessions:
         print(accession_batch)
         print("++++")
+        print("Batch of current accessions is ", accession_batch)
         for num, accession in enumerate(accession_batch):
             print("+++++++")
             print(accession)
@@ -373,11 +392,23 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
         if pair_or_not_toggle == "PAIRED":
 
-            print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
+            # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
             subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-            print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
+            # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
-        exit()
+        split_alignment(ep_output_align, out_dir + '/sequence_storage')
+
+        rm_read_files(out_dir + '/read_files')
+
+        shutil.rmtree(out_dir + '/intermediate_files/ep_output')
+
+        # TEMPORARY BREAK STATEMENT
+        # TODO: DONT FORGET TO REMOVE THIS!!!!
+        # TESTING PURPOSES ONLY
+        break
+
+    
+
 
 
     # # Identify if we're processing data by downloading in batches between Extesniphy runs
@@ -404,89 +435,89 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
     #     # TODO: specify cleanup of intermediate files in all runs
     #     subprocess.run(["multi_map.sh", "-a", align, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(run_num[0]) ,"-c", str(run_num[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
 
-def batch_download(accession_list, runs_number, out_dir, alignment):
-    """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
-    batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
-    print("Beginning batch data download and run scheme.")
-    print("^^^^^^^^^^^^^^^^^^^")
-
-    read_dir_path = out_dir + "/read_files"
-    ep_output = out_dir + "/ep_tmp_outputs"
-    standard_align_path = ep_output + "/RESULTS/extended.aln"
-    align_outdir = out_dir + "/alignments"
-    current_alignment = alignment
-    ref_taxon = ""
-
-    os.chdir(read_dir_path)
-
-########################################################################
-# testing EP running on a single accession instead of in a loop
-    # grouped_accession = batches_of_accessions[0]
-    # print(grouped_accession)
-    # single_accession = grouped_accession[0]
-    #
-    # fasterq_dump_reads(out_dir, single_accession)
-    #
-    # run_ep(out_dir, current_alignment, ep_output)
-    #
-    # print("DONE")
-
-########################################################################
-
-
-
-    for num, accessions in enumerate(batches_of_accessions):
-        print("BEGINNING NEW BATCH SECTION.")
-
-        print("Currend Accession Batch ", accessions)
-
-        if num <= 2:
-
-            # os.chdir(out_dir + "/read_files")
-            print("current working directory: ", os.getcwd())
-            # print(accessions)
-            for single_accession in accessions:
-                print("BEGINNING EP LOOP.")
-
-                fasterq_dump_reads(out_dir, single_accession)
-
-                run_ep(out_dir, current_alignment, ep_output)
-
-
-                exit()
-
-                check_ep_output = os.path.isdir(ep_output)
-                if check_ep_output:
-
-                    print("Found EP output directory")
-                    print("current alignment ", current_alignment)
-                    print("current working directory: ", os.getcwd())
-                    # Copy and rename output alignment and put it the alignments folder for the next round
-                    align_rename_and_move(standard_align_path, align_outdir)
-
-                    print("current working directory: ", os.getcwd())
-                    current_alignment = find_recent_date(align_outdir)
-                    print("curent alignment", current_alignment)
-
-
-                    print("current working directory: ", os.getcwd())
-                    os.rename(ep_output, ep_output + "_" + str(num))
-
-                    print("current working directory: ", os.getcwd())
-                    rm_read_files(read_dir_path)
-
-                    # Remove Extensiphy output directory and contents and prepare for next phase of loop
-                    # try:
-                    #     shutil.rmtree(ep_output)
-                    # except OSError as e:
-                    #     print("Error: %s : %s" % (ep_output, e.strerror))
-
-                elif check_ep_output == False:
-                    print("ERROR: no EP output directory was found.")
-                    exit()
-
-                print("current working directory: ", os.getcwd())
-                print("STARTING NEXT EP LOOP")
+# def batch_download(accession_list, runs_number, out_dir, alignment):
+#     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
+#     batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
+#     print("Beginning batch data download and run scheme.")
+#     print("^^^^^^^^^^^^^^^^^^^")
+#
+#     read_dir_path = out_dir + "/read_files"
+#     ep_output = out_dir + "/ep_tmp_outputs"
+#     standard_align_path = ep_output + "/RESULTS/extended.aln"
+#     align_outdir = out_dir + "/alignments"
+#     current_alignment = alignment
+#     ref_taxon = ""
+#
+#     os.chdir(read_dir_path)
+#
+# ########################################################################
+# # testing EP running on a single accession instead of in a loop
+#     # grouped_accession = batches_of_accessions[0]
+#     # print(grouped_accession)
+#     # single_accession = grouped_accession[0]
+#     #
+#     # fasterq_dump_reads(out_dir, single_accession)
+#     #
+#     # run_ep(out_dir, current_alignment, ep_output)
+#     #
+#     # print("DONE")
+#
+# ########################################################################
+#
+#
+#
+#     for num, accessions in enumerate(batches_of_accessions):
+#         print("BEGINNING NEW BATCH SECTION.")
+#
+#         print("Currend Accession Batch ", accessions)
+#
+#         if num <= 2:
+#
+#             # os.chdir(out_dir + "/read_files")
+#             print("current working directory: ", os.getcwd())
+#             # print(accessions)
+#             for single_accession in accessions:
+#                 print("BEGINNING EP LOOP.")
+#
+#                 fasterq_dump_reads(out_dir, single_accession)
+#
+#                 run_ep(out_dir, current_alignment, ep_output)
+#
+#
+#                 exit()
+#
+#                 check_ep_output = os.path.isdir(ep_output)
+#                 if check_ep_output:
+#
+#                     print("Found EP output directory")
+#                     print("current alignment ", current_alignment)
+#                     print("current working directory: ", os.getcwd())
+#                     # Copy and rename output alignment and put it the alignments folder for the next round
+#                     align_rename_and_move(standard_align_path, align_outdir)
+#
+#                     print("current working directory: ", os.getcwd())
+#                     current_alignment = find_recent_date(align_outdir)
+#                     print("curent alignment", current_alignment)
+#
+#
+#                     print("current working directory: ", os.getcwd())
+#                     os.rename(ep_output, ep_output + "_" + str(num))
+#
+#                     print("current working directory: ", os.getcwd())
+#                     rm_read_files(read_dir_path)
+#
+#                     # Remove Extensiphy output directory and contents and prepare for next phase of loop
+#                     # try:
+#                     #     shutil.rmtree(ep_output)
+#                     # except OSError as e:
+#                     #     print("Error: %s : %s" % (ep_output, e.strerror))
+#
+#                 elif check_ep_output == False:
+#                     print("ERROR: no EP output directory was found.")
+#                     exit()
+#
+#                 print("current working directory: ", os.getcwd())
+#                 print("STARTING NEXT EP LOOP")
 
 def fasterq_dump_reads(out_dir_, single_accession_):
     os.chdir(out_dir_ + "/read_files")
@@ -509,13 +540,13 @@ def run_ep(base_dir_, align_, outdir_):
     # # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
     # print("Extensiphy run complete. BEGINNING PROCESSING")
 
-def rm_read_files(out_dir):
+def rm_read_files(read_dir):
     """Quick function to remove reads that have been used"""
     print("removing read files in preparation for next run.")
-    fastq_file_list = os.listdir(out_dir)
+    fastq_file_list = os.listdir(read_dir)
     print(fastq_file_list)
     for fq_file in fastq_file_list:
-        path_to_file = os.path.join(out_dir, fq_file)
+        path_to_file = os.path.join(read_dir, fq_file)
         os.remove(path_to_file)
 
 def bulk_download(accession_list, out_dir):

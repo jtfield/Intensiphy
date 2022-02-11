@@ -30,13 +30,18 @@ def split_alignment(align_file, output_dir):
             seq = split_chunk[1]
             seq = seq.replace('\n','')
 
-            # make directory to hold files associated with this taxon
+            # Check if this sequence is already in the database
             dir_path = output_dir + '/' + name
-            os.mkdir(dir_path)
+            dir_exists = os.path.isdir(dir_path)
 
-            # separated sequences to individual files
-            output = open(dir_path + '/' + name + '_.fas', 'w')
-            output.write('>' + name)
-            output.write('\n')
-            output.write(seq)
-            output.close()
+            # if no, add a folder for the associated data
+            if dir_exists == False:
+                print("Making new sequence repository for ", name)
+                os.mkdir(dir_path)
+
+                # separated sequences to individual files
+                output = open(dir_path + '/' + name + '_.fas', 'w')
+                output.write('>' + name)
+                output.write('\n')
+                output.write(seq)
+                output.close()

@@ -32,11 +32,11 @@ def parse_args():
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
     parser.add_argument('--ref', default=False, type=str, help='reference sequence label (without suffix or file ending information). (Example: SRR1500345)')
-    parser.add_argument('--sim', type=float, help='sequence similarity cutoff to exclude sequences from the alignment. \
-        When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
-    parser.add_argument('--ds', type=int, help='Allocated disk space Intensiphy can use.')
-    parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
-        of fastq files instead of continuous downloading.')
+    # parser.add_argument('--sim', type=float, help='sequence similarity cutoff to exclude sequences from the alignment. \
+        # When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
+    # parser.add_argument('--ds', type=int, help='Allocated disk space Intensiphy can use.')
+    # parser.add_argument('-b', default=False, action='store_true', help='Toggles big bactch downloading \
+        # of fastq files instead of continuous downloading.')
     return parser.parse_args()
 
 def main():
@@ -77,19 +77,23 @@ def main():
     read_fasta = read_fasta_names(absolute_output_dir_path)
 
     #read list of accessions
-    read_accessions = read_csv_file(args.ep_out_dir)
+    read_accessions = read_csv_file(absolute_output_dir_path)
 
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
     remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
     remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
 
+    # print(remove_paired_dupes)
+    # print(remove_single_dupes)
+
     paired_batch_accessions = prepare_batch_accessions(remove_paired_dupes, get_cores[0])
     single_batch_accessions = prepare_batch_accessions(remove_single_dupes, get_cores[0])
 
-    # print(paired_batch_accessions)
+    print(paired_batch_accessions)
     # print(single_batch_accessions)
 
-    if not remove_paired_dupes.empty:
+    # exit()
+    if len(paired_batch_accessions) > 0:
         process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")
 
 
