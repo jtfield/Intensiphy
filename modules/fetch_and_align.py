@@ -149,6 +149,7 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
     elif accession_option == "USER_INPUT":
         subprocess.run(['cp', input_file, folder_path + "/accession_files/"])
 
+
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
     print("Downloading accession number CSV file.")
@@ -170,6 +171,7 @@ def download_accessions(org_name, out_dir):
     print(dl_accessions.communicate())
 
     os.chdir(out_dir)
+
 
 def read_csv_file(out_dir):
     """Reads the accession file provided by the users and parses compatible sequences."""
@@ -382,12 +384,12 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
     ep_output_align = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
 
     for accession_batch in accessions:
-        print(accession_batch)
+        # print(accession_batch)
         print("++++")
         print("Batch of current accessions is ", accession_batch)
         for num, accession in enumerate(accession_batch):
             print("+++++++")
-            print(accession)
+            # print(accession)
             fasterq_dump_reads(out_dir, accession)
 
         if pair_or_not_toggle == "PAIRED":
@@ -407,7 +409,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
         # TESTING PURPOSES ONLY
         break
 
-    
+
 
 
 
@@ -544,7 +546,7 @@ def rm_read_files(read_dir):
     """Quick function to remove reads that have been used"""
     print("removing read files in preparation for next run.")
     fastq_file_list = os.listdir(read_dir)
-    print(fastq_file_list)
+    # print(fastq_file_list)
     for fq_file in fastq_file_list:
         path_to_file = os.path.join(read_dir, fq_file)
         os.remove(path_to_file)

@@ -72,7 +72,7 @@ def main():
 
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 
-    select_ref(args.ref, absolute_output_dir_path)
+        select_ref(args.ref, absolute_output_dir_path)
 
     read_fasta = read_fasta_names(absolute_output_dir_path)
 
@@ -89,10 +89,9 @@ def main():
     paired_batch_accessions = prepare_batch_accessions(remove_paired_dupes, get_cores[0])
     single_batch_accessions = prepare_batch_accessions(remove_single_dupes, get_cores[0])
 
-    print(paired_batch_accessions)
+    # print(paired_batch_accessions)
     # print(single_batch_accessions)
 
-    # exit()
     if len(paired_batch_accessions) > 0:
         process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")
 
