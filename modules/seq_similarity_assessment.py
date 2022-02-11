@@ -63,15 +63,17 @@ def check_nucs(nuc_tuple):
     else:
         return 4
 
-def build_sim_table(taxon_list):
+def build_sim_table(taxon, taxon_list):
     """Input a list of taxon names and build an empty table matching each taxon
         pairwise"""
 
-    df = pd.DataFrame(columns=taxon_list, index=taxon_list)
+    taxon = [taxon]
+
+    df = pd.DataFrame(columns=taxon, index=taxon_list)
 
     return df
 
-def seq_compare(working_dir, suffix, df):
+def seq_compare(working_dir):
     """Runs comparison program to assess and record sequence similarities"""
 
     # Initialize seqs dir
@@ -98,39 +100,75 @@ def seq_compare(working_dir, suffix, df):
 
     # print(os.listdir(seqs_dir))
     # Loop over every file
-    for file_1 in os.listdir(seqs_dir):
+    list_of_taxa = os.listdir(seqs_dir)
 
-        # Loop over every file that isnt the current file
-        for file_2 in os.listdir(seqs_dir):
-            # print("CHECK!!!")
-            # print(file_1)
-            # print(file_2)
-            if file_1 != file_2:
-                # print("CHECK!!!")
-                # print(file_1)
-                # print(file_2)
+    suffix = '_.fas'
 
-                # Open each file and make the sequence comparison
-                open_file_1 = open(seqs_dir + '/' + file_1, 'r')
-                open_file_2 = open(seqs_dir + '/' + file_2, 'r')
+    for taxon_1 in list_of_taxa:
 
-                # Read and split the files
-                read_file_1 = open_file_1.read().split('\n', 1)
-                read_file_2 = open_file_2.read().split('\n', 1)
+        taxon_1_dir_path = seqs_dir + '/' + taxon_1
+        table_file_name = taxon_1 + '_sim_table.csv'
 
-                name_1 = read_file_1[0].strip('>')
-                name_2 = read_file_2[0].strip('>')
+        if os.path.isdir(taxon_1_dir_path):
+            print(taxon_1_dir_path)
 
-                seq_1 = read_file_1[1]
-                seq_2 = read_file_2[1]
+            taxon_1_seq_file = taxon_1_dir_path + '/' + taxon_1 + suffix
+            df = ''
+            list_taxon_1_files = os.listdir(taxon_1_dir_path)
 
-                # Use comparison function and collect the float output
-                # similarity number
-                compare_output = check_sequence_similarities(seq_1, seq_2)
+            if table_file_name in list_taxon_1_files:
 
-                df.at[name_1, name_2] = compare_output
+                #PROCESS TABLE
+                df = pd.read_csv(taxon_1_dir_path + '/' + table_file_name, sep=',', index_col=0)
 
-        # return df
+            elif table_file_name not in list_taxon_1_files:
+
+                # BUILD TABLE
+                df = build_sim_table(taxon_1, list_of_taxa)
+
+            print(df)
+            # Loop over every file that isnt the current file
+            for taxon_2 in os.listdir(seqs_dir):
+
+                taxon_2_dir_path = seqs_dir + '/' + taxon_2
+
+                if os.path.isdir(taxon_2_dir_path):
+
+                    taxon_2_seq_file = taxon_2_dir_path + '/' + taxon_2 + suffix
+
+                    # print("CHECK!!!")
+                    # print(file_1)
+                    # print(file_2)
+                    if taxon_1 != taxon_2:
+                        print("CHECK!!!")
+                        print(taxon_1)
+                        print(taxon_2)
+
+                        # Open each file and make the sequence comparison
+                        open_file_1 = open(taxon_1_seq_file, 'r')
+                        open_file_2 = open(taxon_2_seq_file, 'r')
+
+                        # Read and split the files
+                        read_file_1 = open_file_1.read().split('\n', 1)
+                        read_file_2 = open_file_2.read().split('\n', 1)
+
+                        name_1 = read_file_1[0].strip('>')
+                        name_2 = read_file_2[0].strip('>')
+
+                        seq_1 = read_file_1[1]
+                        seq_2 = read_file_2[1]
+
+                        # Use comparison function and collect the float output
+                        # similarity number
+                        print("Checking similarities")
+                        compare_output = check_sequence_similarities(seq_1, seq_2)
+
+                        # df.at[name_1, name_2] = compare_output
+                        df.at[name_2] = compare_output
+
+            print(df)
+            # df.to_csv(taxon_1_dir_path + '/' + table_file_name, sep=',')
+
 
 def build_or_update_df(working_dir, run_bool, suffix):
 

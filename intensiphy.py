@@ -93,7 +93,15 @@ def main():
     # print(single_batch_accessions)
 
     if len(paired_batch_accessions) > 0:
+        print("Processing paired-end read files.")
         process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")
+
+    if len(single_batch_accessions) > 0:
+        print("Processing single-end read files.")
+        process_data = downloading_and_running(single_batch_accessions, args.ep_out_dir, get_cores, "SINGLE")
+
+
+    
 
 
 
