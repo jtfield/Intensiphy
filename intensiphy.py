@@ -105,6 +105,9 @@ def main():
         print("Processing single-end read files.")
         process_data = downloading_and_running(single_batch_accessions, args.ep_out_dir, get_cores, "SINGLE")
 
+    # Make new alignment and perform placement into tree
+    construct_align_and_place(absolute_output_dir_path)
+
 
 
 

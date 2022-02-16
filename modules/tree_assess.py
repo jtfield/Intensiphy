@@ -19,7 +19,7 @@ def handle_starting_tree(outdir, threads, tree_var):
     threads = str(int(threads[0]) * int(threads[1]))
 
 
-    if tree_var == false:
+    if tree_var == False:
         os.chdir(tree_storage)
 
         subprocess.run(['raxmlHPC-PTHREADS', '-m', 'GTRGAMMA', '-T', threads, '-s', align, '-p', '12345', '-n', 'starting_tree.tre'])
@@ -55,7 +55,7 @@ def construct_align_and_place(outdir):
     output_alignment_path = phylo_dir_full_path + '/extended.aln'
     os.mkdir(phylo_dir_full_path)
 
-    cat_command_start = ['cat']
+    # cat_command_start = ['cat']
     output = open(output_alignment_path, 'a')
 
     for dir in taxa_list:
