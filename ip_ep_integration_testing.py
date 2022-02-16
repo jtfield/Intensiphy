@@ -20,6 +20,7 @@ from itertools import repeat
 from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 from modules.fetch_and_align import *
+from modules.tree_assess import *
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
@@ -43,6 +44,11 @@ def main():
     # alignment = args.align_file
     # read_dir = args.read_dir
     ep_outdir = args.ep_out_dir
+
+    # build_starting_tree(ep_outdir, ['2', '2'])
+
+    construct_align_and_place(ep_outdir)
+
 
     #####################################################################
     # file_1 = args.seq_1_file
@@ -95,19 +101,19 @@ def main():
 
     # remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
 
-    a_args = [1,2,3]
-    second_arg = 1
-    with Pool() as pool:
-        L = pool.starmap(func, [(1, 1), (2, 1), (3, 1)])
-        M = pool.starmap(func, zip(a_args, repeat(second_arg)))
-        # N = pool.map(partial(func, b=second_arg), a_args)
-        assert L == M
-        print(L)
-        print(M)
-
-def func(a, b):
-    return a + b
+#     a_args = [1,2,3]
+#     second_arg = 1
+#     with Pool() as pool:
+#         L = pool.starmap(func, [(1, 1), (2, 1), (3, 1)])
+#         M = pool.starmap(func, zip(a_args, repeat(second_arg)))
+#         # N = pool.map(partial(func, b=second_arg), a_args)
+#         assert L == M
+#         print(L)
+#         print(M)
+#
+# def func(a, b):
+#     return a + b
 
 if __name__ == '__main__':
-    freeze_support()
+    # freeze_support()
     main()

@@ -16,6 +16,7 @@ import dateutil
 from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 from modules.fetch_and_align import *
+from modules.tree_assess import *
 # import tests.accessions_tests.accession_download_test
 # import tests.assembly_tests.gon_phy_test
 
@@ -24,6 +25,8 @@ def parse_args():
         description='Automate downloading of high-throughput sequence data and updating of alignments using Extensiphy.')
     parser.add_argument('--align_file', default=False, help='input alignment option. \
         If an alignment is added using this option, samples will be added to this alignment.')
+    parser.add_argument('--starting_tree', default=False, type=str, help='Path \
+    to a newick tree file corresponding to an input alignment. Don\' use if not inputting an alignment.' )
     parser.add_argument('--cores')
     parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
     parser.add_argument('--accession_method', default="AUTO_DL", help='Dictates how collecting and inputting accession numbers will be handled. \
@@ -73,6 +76,8 @@ def main():
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 
         select_ref(args.ref, absolute_output_dir_path)
+
+        handle_starting_tree(absolute_output_dir_path, get_cores, args.starting_tree)
 
     read_fasta = read_fasta_names(absolute_output_dir_path)
 

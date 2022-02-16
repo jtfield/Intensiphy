@@ -6,7 +6,32 @@ import pathlib
 import numpy as np
 import pandas as pd
 # from multiprocessing import Pool, freeze_support
-import multiprocessing as mp
+# import multiprocessing as mp
+
+def all_to_all_comparison(outdir):
+    """Function to perform all to all sequence comparison at the very start
+    of a IP run. This function leads to selection of the "backbone sequences"
+    used in phylogenetic estimation"""
+
+    path_to_backbone_table = outdir + '/run_log_files/backbone_sims.csv'
+    path_to_seqs = outdir + '/sequence_storage'
+    list_of_seqs = os.listdir(path_to_seqs)
+    table_exists_bool = os.path.exists(path_to_backbone_table)
+
+    if table_exists_bool == False:
+
+        # Build table
+        df = backbone_build_sim_table(list_of_seqs)
+
+        filled_df = fill_backbone_table(outdir, list_of_seqs, df)
+
+
+
+    # #PROCESS TABLE
+    ##df = pd.read_csv(taxon_1_dir_path + '/' + table_file_name, sep=',', index_col=0)
+
+
+
 
 def check_sequence_similarities(_seq_1, _seq_2):
     """Checks similarity of two sequences"""
@@ -65,7 +90,7 @@ def check_nucs(nuc_tuple):
     else:
         return 4
 
-def build_sim_table(taxon, taxon_list):
+def taxon_build_sim_table(taxon, taxon_list):
     """Input a list of taxon names and build an empty table matching each taxon
         pairwise"""
 
@@ -75,34 +100,19 @@ def build_sim_table(taxon, taxon_list):
 
     return df
 
-def seq_compare(working_dir):
+def backbone_build_sim_table(taxon_list):
+    """Input a list of taxon names and build an empty table matching each taxon
+        pairwise"""
+
+
+    df = pd.DataFrame(columns=taxon_list, index=taxon_list)
+
+    return df
+
+def fill_backbone_table(working_dir, list_of_taxa, df):
     """Runs comparison program to assess and record sequence similarities"""
 
-    # Initialize seqs dir
     seqs_dir = working_dir + '/sequence_storage'
-
-    # # Initialize taxon name list
-    # taxon_names = []
-    #
-    # # Loop over taxon names
-    # for file in os.listdir(seqs_dir):
-    #
-    #     # Remove the suffix frome the taxon name
-    #     clean_name = file.replace(suffix,'')
-    #
-    #     # Append the names to the list
-    #     taxon_names.append(clean_name)
-    #
-    # df = ''
-    # if run_bool:
-    #     df = build_sim_table(taxon_names)
-    #
-    # else:
-    #     df = pd.read_csv(working_dir + '/similarity_logs/sims_database.csv')
-
-    # print(os.listdir(seqs_dir))
-    # Loop over every file
-    list_of_taxa = os.listdir(seqs_dir)
 
     suffix = '_.fas'
 
@@ -111,26 +121,12 @@ def seq_compare(working_dir):
     for taxon_1 in list_of_taxa:
 
         taxon_1_dir_path = seqs_dir + '/' + taxon_1
-        table_file_name = taxon_1 + '_sim_table.csv'
 
         if os.path.isdir(taxon_1_dir_path):
             print(taxon_1_dir_path)
 
             taxon_1_seq_file = taxon_1_dir_path + '/' + taxon_1 + suffix
-            df = ''
             list_taxon_1_files = os.listdir(taxon_1_dir_path)
-
-            if table_file_name in list_taxon_1_files:
-
-                #PROCESS TABLE
-                df = pd.read_csv(taxon_1_dir_path + '/' + table_file_name, sep=',', index_col=0)
-
-            elif table_file_name not in list_taxon_1_files:
-
-                # BUILD TABLE
-                df = build_sim_table(taxon_1, list_of_taxa)
-
-            # print(df)
 
             # Loop over every file that isnt the current file
             for taxon_2 in os.listdir(seqs_dir):
@@ -166,9 +162,9 @@ def seq_compare(working_dir):
                         compare_output = check_sequence_similarities(seq_1, seq_2)
 
                         # df.at[name_1, name_2] = compare_output
-                        df.at[name_2] = compare_output
+                        df.at[name_1, name_2] = compare_output
 
-            print(df)
+    print(df)
             # df.to_csv(taxon_1_dir_path + '/' + table_file_name, sep=',')
 
 
