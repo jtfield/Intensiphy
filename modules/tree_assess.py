@@ -39,6 +39,8 @@ def handle_starting_tree(outdir, threads, tree_var):
 
             new_tree.symlink_to(symlink_file)
 
+
+
 def construct_align_and_place(outdir):
     """Builds an alignment using all present sequences. \
     Uses starting tree to place new sequences in the tree (RAxML EPA)"""
@@ -47,12 +49,15 @@ def construct_align_and_place(outdir):
     # for record keeping purposes
     now = datetime.datetime.now()
     seq_storage_path = outdir + '/sequence_storage'
+    starting_tree_path = outdir + '/intermediate_files/ RAxML_bestTree.starting_tree.tre'
     taxa_list = os.listdir(seq_storage_path)
     suffix = '_.fas'
 
     phylo_est_dir = 'tree_inference_' + now.strftime('%Y-%m-%d-%H-%M-%S')
     phylo_dir_full_path = outdir + '/' + phylo_est_dir
+
     output_alignment_path = phylo_dir_full_path + '/extended.aln'
+
     os.mkdir(phylo_dir_full_path)
 
     # cat_command_start = ['cat']
@@ -72,6 +77,20 @@ def construct_align_and_place(outdir):
 
 
     output.close()
+
+    print("Updated alignment construction complete.")
+
+    os.chdir(phylo_dir_full_path)
+    # Run RAxML using the EPA (placement) algorithm
+    print("Running placement algorithm to add new sequences to the tree.")
+    print('raxmlHPC-PTHREADS', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA', '-n', 'placement.tre', '­-f', 'v')
+    print('raxmlHPC-PTHREADS', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA', '-n', 'placement.tre', '­-f', 'v')
+    process = subprocess.Popen(['raxmlHPC-PTHREADS', '­-f', 'v', '­-s', output_alignment_path, '-t', starting_tree_path, '-m' 'GTRGAMMA', '­-n', 'placement.tre'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    print(stdout)
+    print(stderr)
+    os.chdir(outdir)
+
     #     cat_command_start.append('\n')
 
 
@@ -92,4 +111,14 @@ def construct_align_and_place(outdir):
     # output = open(output_alignment_path, 'w')
     # output.write(str(stdout, 'UTF-8'))
     # output.close()
-    print("Updated alignment construction complete.")
+    # print("Updated alignment construction complete.")
+    #
+    # os.chdir(phylo_dir_full_path)
+    # # Run RAxML using the EPA (placement) algorithm
+    # print("Running placement algorithm to add new sequences to the tree.")
+    # print('raxmlHPC-PTHREADS', '­-f', 'v', '­-s', output_alignment_path, '-­t', starting_tree_path, '-­m', 'GTRCAT', '­-n', 'placement.tre')
+    # # process = subprocess.Popen(['raxmlHPC-PTHREADS', '­-f', 'v', '­-s', output_alignment_path, '-­t', starting_tree_path, '-­m', 'GTRCAT', '­-n', 'placement.tre'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # # stdout, stderr = process.communicate()
+    # # print(stdout)
+    # # print(stderr)
+    # os.chdir(outdir)

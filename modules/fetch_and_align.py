@@ -118,6 +118,35 @@ def select_ref(ref_var, output_dir_path):
                         shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
 
 
+def clean_incomplete_downloads(outdir):
+    """Delete folders left behind by fasterq-dump if a download is interrupted"""
+    read_dir = outdir + '/read_files'
+
+    # List files in read dir
+    files_list = os.listdir(read_dir)
+
+    # Check if file_dir is empty
+    # if empty, no need to remove anything
+    if len(files_list) == 0:
+        print("Read directory is empty and ready for new reads.")
+
+    else:
+
+        # Loop over files and check if any are directories
+        for file in files_list:
+            file_path = read_dir + '/' + file
+            check_dir = os.path.isdir(file_path)
+
+            # If file is a directory, try to remove
+            # throw an exception if this doesnt work
+            if check_dir:
+                try:
+                    shutil.rmtree(file_path)
+                except:
+                    print("Could not delete dir :", file_path)
+
+
+
 
 
 

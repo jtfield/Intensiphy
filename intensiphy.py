@@ -79,6 +79,8 @@ def main():
 
         handle_starting_tree(absolute_output_dir_path, get_cores, args.starting_tree)
 
+    clean_incomplete_downloads(absolute_output_dir_path)
+
     read_fasta = read_fasta_names(absolute_output_dir_path)
 
     #read list of accessions
