@@ -34,7 +34,7 @@ def handle_starting_tree(outdir, threads, tree_var):
 
             symlink_file = pathlib.Path(abs_tree_path)
 
-            new_tree = output_dir_path + '/intermediate_files/starting_tree.tre'
+            new_tree = output_dir_path + '/intermediate_files/RAxML_bestTree.starting_tree.tre'
             new_tree = pathlib.Path(new_tree)
 
             new_tree.symlink_to(symlink_file)
@@ -49,7 +49,7 @@ def construct_align_and_place(outdir):
     # for record keeping purposes
     now = datetime.datetime.now()
     seq_storage_path = outdir + '/sequence_storage'
-    starting_tree_path = outdir + '/intermediate_files/ RAxML_bestTree.starting_tree.tre'
+    starting_tree_path = outdir + '/intermediate_files/RAxML_bestTree.starting_tree.tre'
     taxa_list = os.listdir(seq_storage_path)
     suffix = '_.fas'
 
@@ -82,13 +82,18 @@ def construct_align_and_place(outdir):
 
     os.chdir(phylo_dir_full_path)
     # Run RAxML using the EPA (placement) algorithm
+
+    # place_tree_build = ['raxmlHPC-PTHREADS', '-f', 'v', '­-n', 'placement.tre', '­-s', output_alignment_path, '-t', starting_tree_path, '-m' 'GTRGAMMA']
+
+    place_tree_build = ['raxmlHPC-PTHREADS', '-f', 'v', '-n', 'placement.tre', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA']
     print("Running placement algorithm to add new sequences to the tree.")
-    print('raxmlHPC-PTHREADS', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA', '-n', 'placement.tre', '­-f', 'v')
-    print('raxmlHPC-PTHREADS', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA', '-n', 'placement.tre', '­-f', 'v')
-    process = subprocess.Popen(['raxmlHPC-PTHREADS', '­-f', 'v', '­-s', output_alignment_path, '-t', starting_tree_path, '-m' 'GTRGAMMA', '­-n', 'placement.tre'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    print(stdout)
-    print(stderr)
+    print(place_tree_build)
+    # print('raxmlHPC-PTHREADS', '-s', output_alignment_path, '-t', starting_tree_path, '-m', 'GTRGAMMA', '-n', 'placement.tre', '­-f', 'v')
+    # process = subprocess.Popen(['raxmlHPC-PTHREADS', '­-f', 'v', '­-s', output_alignment_path, '-t', starting_tree_path, '-m' 'GTRGAMMA', '­-n', 'placement.tre'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # stdout, stderr = process.communicate()
+    # print(stdout)
+    # print(stderr)
+    subprocess.run(place_tree_build)
     os.chdir(outdir)
 
     #     cat_command_start.append('\n')
