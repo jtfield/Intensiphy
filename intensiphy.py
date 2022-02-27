@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument('--accession_method', default="AUTO_DL", help='Dictates how collecting and inputting accession numbers will be handled. \
         (OPTIONS: USER_INPUT, AUTO_DL, AUTO_PATHDB), (DEFAULT: AUTO_DL)')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
+    # parser.add_argument('--path_to_ep_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
     parser.add_argument('--ref', default=False, type=str, help='reference sequence label (without suffix or file ending information). (Example: SRR1500345)')
