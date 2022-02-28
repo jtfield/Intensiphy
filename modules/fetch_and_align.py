@@ -445,7 +445,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
         # TEMPORARY BREAK STATEMENT
         # TODO: DONT FORGET TO REMOVE THIS!!!!
         # TESTING PURPOSES ONLY
-        break
+        # break
 
 
 
