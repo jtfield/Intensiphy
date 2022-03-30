@@ -17,7 +17,7 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
     """If this is the start of a run (no output folder existed prior to starting this run) \
     used gon_phyling to build an alignment based on the first 6 available samples"""
     print("Building a starting alignment.")
-    if alignment_var != False:
+    if alignment_var != False and run_bool == False:
         print("Input alignment detected.")
         print("Skipping de novo alignment production.")
 
@@ -31,7 +31,7 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
         new_align.symlink_to(symlink_file)
 
 
-    if alignment_var == False:
+    elif alignment_var == False:
         #Test!
         # tests.assembly_tests.gon_phy_test.test_build_alignment()
 
@@ -68,7 +68,8 @@ def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
 
                     os.chdir(output_dir_path + "/starting_align_files")
 
-                    symlink_align(output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path)
+                    # symlink_align(output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path)
+                    subprocess.run(["cp", output_dir_path + "/starting_align_files/trimmed_reads/spades_output/genomes_for_parsnp/alignment_fixing/combo.fas", output_dir_path + "/intermediate_files/alignment.fas"])
 
 # def get_most_recent_align(run_bool, starting_align, output_dir_path):
 #     """Determines how to handle the run if the output dir already exists (indicating a continuing run) \
@@ -621,10 +622,10 @@ def fasterq_dump_reads(out_dir_, single_accession_):
 def run_ep(base_dir_, align_, outdir_):
     # print("current working directory: ", os.getcwd())
     # print("current alignment ", current_alignment)
-    print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_)
+    print("extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_)
     # ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # print(ep_process.communicate())
-    subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_])
+    subprocess.run(["extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_])
 
     # print("current working directory: ", os.getcwd())
     # print("current alignment ", current_alignment)
