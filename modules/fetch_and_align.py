@@ -167,9 +167,6 @@ def write_current_run_names(outdir, list_of_names):
 
 
 
-
-
-
 def clean_incomplete_downloads(outdir):
     """Delete folders left behind by fasterq-dump if a download is interrupted"""
     read_dir = outdir + '/read_files'
