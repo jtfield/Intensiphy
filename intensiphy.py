@@ -100,6 +100,9 @@ def main():
     # print(paired_batch_accessions)
     # print(single_batch_accessions)
 
+    write_current_run_names(absolute_output_dir_path, paired_batch_accessions)
+    write_current_run_names(absolute_output_dir_path, single_batch_accessions)
+
     if len(paired_batch_accessions) > 0:
         print("Processing paired-end read files.")
         process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")

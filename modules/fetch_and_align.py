@@ -118,6 +118,57 @@ def select_ref(ref_var, output_dir_path):
                         shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
 
 
+def write_current_run_names(outdir, list_of_names):
+    """
+    Takes in the list of names being added during the current run of IP.
+    Writes those to a file for record keeping.
+    """
+    now = datetime.datetime.now()
+
+    current_time = now.strftime('%Y-%m-%d')
+
+    current_run = "current_run_taxa_added.txt"
+    path_to_file = outdir + '/' + current_run
+
+    file_exists = os.path.isfile(path_to_file)
+
+    open_record_file = ''
+
+    if file_exists:
+
+        open_record_file = open(path_to_file, 'a+')
+
+    elif file_exists == False:
+
+        open_record_file = open(path_to_file, 'w')
+
+    open_record_file.write("\ncurrent_date: " + current_time)
+
+    for sub_list in list_of_names:
+
+        for name in sub_list:
+            open_record_file.write("\n")
+            open_record_file.write(name)
+
+    open_record_file.close()
+
+    # elif file_exists == False:
+    #
+    #     open_record_file = open(path_to_file, 'w')
+    #
+    #     open_record_file.write("\ncurrent_date: " + current_time)
+    #
+    #     for name in list_of_names:
+    #         open_record_file.write("\n")
+    #         open_record_file.write(name)
+    #
+    #     open_record_file.close()
+
+
+
+
+
+
 def clean_incomplete_downloads(outdir):
     """Delete folders left behind by fasterq-dump if a download is interrupted"""
     read_dir = outdir + '/read_files'
