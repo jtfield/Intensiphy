@@ -353,14 +353,14 @@ def check_duplicate_accesions(accession_db, fasta_names):
     sras_to_keep = []
 
     sra_ids = accession_db['Run'].tolist()
-    print("Starting list of sras ", sra_ids)
+    # print("Starting list of sras ", sra_ids)
     # print(fasta_names)
     if len(sra_ids) != 0:
         for num, name in enumerate(sra_ids):
             if name not in fasta_names:
                 sras_to_keep.append(name)
 
-    print("Dupes removed list of sras ", sras_to_keep)
+    # print("Dupes removed list of sras ", sras_to_keep)
     return sras_to_keep
 
 
@@ -450,11 +450,27 @@ def align_rename_and_move(align, outdir):
 
 def fasterq_dump_reads(out_dir_, single_accession_):
     os.chdir(out_dir_ + "/read_files")
+
+    downloaded_or_not = 'UNUSED'
     # print("current working directory: ", os.getcwd())
     # print("current alignment ", current_alignment)
     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print(reads_dl.communicate())
+    output_to_string = reads_dl.communicate().decode("utf-8")
+
+    print(output_to_string)
+
+    # fasterq-dump.3.0.0 err
+    if "err" in output_to_string and "quit with error" in output_to_string:
+
+        downloaded_or_not = single_accession_
+
+    else:
+
+        downloaded_or_not = "DOWNLOADED"
+
     os.chdir(out_dir_)
+
+    return downloaded_or_not
 
 
 def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
@@ -466,35 +482,49 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
         # print(accession_batch)
         print("++++")
         print("Batch of current accessions is ", accession_batch)
+        len_of_this_batch = len(accession_batch)
+        not_downloaded_this_run = []
+
         for num, accession in enumerate(accession_batch):
             print("+++++++")
             # print(accession)
-            fasterq_dump_reads(out_dir, accession)
+            download_status = fasterq_dump_reads(out_dir, accession)
 
-        if pair_or_not_toggle == "PAIRED":
+            if download_status != "DOWNLOADED" or "UNUSED":
 
-            # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
-            subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-            # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
+                not_downloaded_this_run.append(download_status)
 
-        elif pair_or_not_toggle == "SINGLE":
+        if len(not_downloaded_this_run) < len(len_of_this_batch):
+            # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
 
             if pair_or_not_toggle == "PAIRED":
+
+                # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
+                subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+                # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
+
+            elif pair_or_not_toggle == "SINGLE":
 
                 # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
                 subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
                 # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
-        split_alignment(ep_output_align, out_dir + '/sequence_storage')
+            split_alignment(ep_output_align, out_dir + '/sequence_storage')
 
-        rm_read_files(out_dir + '/read_files')
+            rm_read_files(out_dir + '/read_files')
 
-        shutil.rmtree(out_dir + '/intermediate_files/ep_output')
+            shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
-        # TEMPORARY BREAK STATEMENT
-        # TODO: DONT FORGET TO REMOVE THIS!!!!
-        # TESTING PURPOSES ONLY
-        # break
+        elif len(not_downloaded_this_run) == len(len_of_this_batch):
+
+            print("ERRORS ON DOWNLOAD: Skipping EP run due to un-downloaded accessions batch.")
+            print(accession_batch)
+            print("###")
+
+                # TEMPORARY BREAK STATEMENT
+                # TODO: DONT FORGET TO REMOVE THIS!!!!
+                # TESTING PURPOSES ONLY
+                # break
 
 
 
