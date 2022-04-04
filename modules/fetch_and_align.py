@@ -494,32 +494,32 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
                 not_downloaded_this_run.append(download_status)
 
-            if len(not_downloaded_this_run) < len_of_this_batch:
-            # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
+        if len(not_downloaded_this_run) < len_of_this_batch:
+        # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
 
-                if pair_or_not_toggle == "PAIRED":
+            if pair_or_not_toggle == "PAIRED":
 
-                    # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
-                    subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-                    # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
+                # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
+                subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+                # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
-                elif pair_or_not_toggle == "SINGLE":
+            elif pair_or_not_toggle == "SINGLE":
 
-                    # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
-                    subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-                    # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
+                # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
+                subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+                # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
-                split_alignment(ep_output_align, out_dir + '/sequence_storage')
+            split_alignment(ep_output_align, out_dir + '/sequence_storage')
 
-                rm_read_files(out_dir + '/read_files')
+            rm_read_files(out_dir + '/read_files')
 
-                shutil.rmtree(out_dir + '/intermediate_files/ep_output')
+            shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
-            elif len(not_downloaded_this_run) == len(len_of_this_batch):
+        elif len(not_downloaded_this_run) == len(len_of_this_batch):
 
-                print("ERRORS ON DOWNLOAD: Skipping EP run due to un-downloaded accessions batch.")
-                print(accession_batch)
-                print("###")
+            print("ERRORS ON DOWNLOAD: Skipping EP run due to un-downloaded accessions batch.")
+            print(accession_batch)
+            print("###")
 
                 # TEMPORARY BREAK STATEMENT
                 # TODO: DONT FORGET TO REMOVE THIS!!!!
