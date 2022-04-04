@@ -515,10 +515,12 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
-        elif len(not_downloaded_this_run) == len(len_of_this_batch):
+        elif len(not_downloaded_this_run) == len_of_this_batch:
 
             print("ERRORS ON DOWNLOAD: Skipping EP run due to un-downloaded accessions batch.")
             print(accession_batch)
+            print("batches not downloaded this run.")
+            print(not_downloaded_this_run)
             print("###")
 
                 # TEMPORARY BREAK STATEMENT
