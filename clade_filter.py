@@ -29,8 +29,11 @@ def main():
     metadata_table = pd.read_csv(args.metadata_csv)
     # print(metadata_table)
 
-    find_good_clades(clades, metadata_table)
+    processed_clades = find_good_clades(clades, metadata_table)
 
+    chosen_clade = make_clade_decision(processed_clades)
+
+    print(clades[chosen_clade])
 
 def make_clades_list(full_tree):
 
@@ -60,40 +63,75 @@ def find_good_clades(clades_, metadata_):
         list_of_gene_counts = []
         num_tips_no_amr_genes = 0
         num_tips_missing_location_data = 0
+        num_missing_tips = 0
 
         number_of_tips = len(clade_of_tips)
 
         for tip in clade_of_tips:
-            print(tip)
+            # print(tip)
             # found_tip = metadata_[(metadata_.loc[tip])]
             try:
                 found_tip = metadata_[metadata_.isin([tip]).any(axis=1)]
                 tips_index = found_tip.index[0]
-                print(tips_index)
+                # print(tips_index)
 
-                tips_amr_gene_num = found_tip.at[tips_index, amr_gene_column_name].split(',')
-                print(len(tips_amr_gene_num))
+                tips_amr_gene_num = str(found_tip.at[tips_index, amr_gene_column_name]).split(',')
+                # print(len(tips_amr_gene_num))
                 list_of_gene_counts.append(len(tips_amr_gene_num))
                 if len(list_of_gene_counts) == 0:
                     num_tips_no_amr_genes+=1
-                    print("***")
+                    # print("***")
 
-                    date_info = found_tip.at[tips_index, location_column]
-                    print(date_info)
-                    if type(date_info) == float:
-                        # print("####################")
-                        num_tips_missing_location_data+=1
+                location_info = found_tip.at[tips_index, location_column]
+                # print(location_info)
+                # if type(location_info) == float:
+                if str(location_info) == 'nan':
+                    # print("####################")
+                    num_tips_missing_location_data+=1
 
             except IndexError:
                 print("error")
+                num_missing_tips+=1
             # tip_amr_genes_num =
 
         avg_of_amr_genes = sum(list_of_gene_counts) / len(list_of_gene_counts)
+
+        results_of_analysis[num] = [number_of_tips, avg_of_amr_genes, num_tips_no_amr_genes, num_tips_missing_location_data, num_missing_tips]
+
         print("number of tips in clade ", number_of_tips)
         print("avg num of amr genes ", avg_of_amr_genes)
         print("num tips with no amr genes ", num_tips_no_amr_genes)
         print("num tips missing location data ", num_tips_missing_location_data)
+        print("num missing tips from metadata table ", num_missing_tips)
 
+    print(results_of_analysis)
+    return results_of_analysis
+
+
+def make_clade_decision(processed_clades_):
+    current_best_clade = None
+    best_num_tips = 0
+    best_avg_amr_genes = 0
+    best_num_tips_no_amr_genes = 0
+    best_num_tips_missing_location_data = 0
+    best_num_missing_tips = 0
+
+    for key, value in processed_clades_.items():
+        num_tips = value[0]
+        avg_genes = value[1]
+        no_amr_genes = value[2]
+        missing_loc = value[3]
+        missing_tips = value[4]
+
+        if num_tips >= best_num_tips and \
+        avg_genes >= best_avg_amr_genes and \
+        no_amr_genes <= best_num_tips_no_amr_genes and \
+        missing_loc <= best_num_tips_missing_location_data and \
+        missing_tips <= best_num_missing_tips:
+            current_best_clade = key
+
+    print(processed_clades_[current_best_clade])
+    return current_best_clade
 
 if __name__ == '__main__':
     main()
