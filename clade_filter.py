@@ -34,8 +34,10 @@ def main():
     # print(metadata_table)
 
     processed_clades = find_good_clades(clades, metadata_table)
+    # print(processed_clades)
 
     chosen_clade = make_clade_decision(processed_clades)
+    # print(chosen_clade)
 
     # print(clades[chosen_clade])
     # print(chosen_clade)
@@ -150,14 +152,38 @@ def make_clade_decision(processed_clades_):
         missing_loc = value[3]
         missing_tips = value[4]
 
-        if num_tips >= best_num_tips and \
-        avg_genes >= best_avg_amr_genes and \
-        no_amr_genes <= best_num_tips_no_amr_genes and \
-        missing_loc <= best_num_tips_missing_location_data and \
-        missing_tips <= best_num_missing_tips:
-            current_best_clade = key
+        if num_tips >= best_num_tips:
+            # print("best number of tips")
+            # print(best_num_tips, num_tips)
+            if avg_genes >= best_avg_amr_genes:
+                # print("best avg amr genes count")
+                # print(best_avg_amr_genes, avg_genes)
+                if no_amr_genes <= best_num_tips_no_amr_genes:
+                    # print("best number of tips with no amr genes")
+                    # print(best_num_tips_no_amr_genes, no_amr_genes)
+                    if missing_loc <= best_num_tips_missing_location_data:
+                        # print("best number of tips missing location")
+                        # print(best_num_tips_missing_location_data, missing_loc)
+                        if missing_tips <= best_num_missing_tips:
+                            # print("best number of tips missing from metadata")
+                            # print(best_num_missing_tips, missing_tips)
 
-    # print(processed_clades_[current_best_clade])
+                            # print("################")
+                            current_best_clade = key
+                            # print("best clade ", current_best_clade)
+                            best_num_tips = num_tips
+                            # print("best number of tips ", best_num_tips)
+                            best_avg_amr_genes = avg_genes
+                            # print("best avg amr genes ", best_avg_amr_genes)
+                            best_num_tips_no_amr_genes = no_amr_genes
+                            # print("best num tips with no amr genes ", best_num_tips_no_amr_genes)
+                            best_num_tips_missing_location_data = missing_loc
+                            # print("best num tips missing loc data ", best_num_tips_missing_location_data)
+                            best_num_missing_tips = missing_tips
+                            # print("least number of missing tips ", best_num_missing_tips)
+                            # print("!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+    print(processed_clades_[current_best_clade])
     return current_best_clade
 
 if __name__ == '__main__':
