@@ -14,6 +14,8 @@ def parse_args():
     parser.add_argument('--tree_file', default=False, help='input phylogeny option.')
     parser.add_argument('--metadata_csv', default=False, help='metadata csv with info on samples from the tree.')
     parser.add_argument('--output_file', default='clade_to_keep.txt', help='output file containing taxon names separated by newlines.')
+    parser.add_argument('--lower_bound', default=50, help='lowest number of taxa to consider.')
+    parser.add_argument('--upper_bound', default=150, help='highest number of taxa to consider.')
     return parser.parse_args()
 
 def main():
@@ -22,9 +24,10 @@ def main():
     # # establish taxon namespace
     tns = dendropy.TaxonNamespace()
     #
-    in_tree = dendropy.Tree.get(path=args.tree_file, schema='newick', taxon_namespace=tns)
+    in_tree = dendropy.Tree.get(path=args.tree_file, schema='newick', taxon_namespace=tns, preserve_underscores=True)
 
-    clades = make_clades_list(in_tree)
+    clades = make_clades_list(in_tree, args.lower_bound, args.upper_bound)
+    # print(clades)
 
     #Input table of metadata to pandas
     metadata_table = pd.read_csv(args.metadata_csv)
@@ -35,6 +38,8 @@ def main():
     chosen_clade = make_clade_decision(processed_clades)
 
     # print(clades[chosen_clade])
+    # print(chosen_clade)
+    # print(clades)
 
     output = open(args.output_file, 'w')
 
@@ -45,14 +50,20 @@ def main():
     output.close()
 
 
-def make_clades_list(full_tree):
+def make_clades_list(full_tree, lower_bound, upper_bound):
+
+    lower_bound = int(lower_bound)
+    upper_bound = int(upper_bound)
+    # print(lower_bound)
+    # print(upper_bound)
 
     taxon_sets = []
     for node in full_tree:
         # print(node)
-        if 50 < len([leaf.taxon.label for leaf in node.leaf_iter()]) < 150:
+        if lower_bound < len([leaf.taxon.label for leaf in node.leaf_iter()]) < upper_bound:
             taxon_sets.append([leaf.taxon.label for leaf in node.leaf_iter()])
 
+    # print(taxon_sets)
     # print(len(taxon_sets))
     return taxon_sets
 
@@ -101,9 +112,14 @@ def find_good_clades(clades_, metadata_):
                     num_tips_missing_location_data+=1
 
             except IndexError:
-                print("error")
+                print("Error: Tip missing from metadata file: ", tip)
                 num_missing_tips+=1
-            # tip_amr_genes_num =
+
+        # print("number of tips in clade ", number_of_tips)
+        # # print("avg num of amr genes ", avg_of_amr_genes)
+        # print("num tips with no amr genes ", num_tips_no_amr_genes)
+        # print("num tips missing location data ", num_tips_missing_location_data)
+        # print("num missing tips from metadata table ", num_missing_tips)
 
         avg_of_amr_genes = sum(list_of_gene_counts) / len(list_of_gene_counts)
 
@@ -123,9 +139,9 @@ def make_clade_decision(processed_clades_):
     current_best_clade = None
     best_num_tips = 0
     best_avg_amr_genes = 0
-    best_num_tips_no_amr_genes = 0
-    best_num_tips_missing_location_data = 0
-    best_num_missing_tips = 0
+    best_num_tips_no_amr_genes = 100000000
+    best_num_tips_missing_location_data = 100000000
+    best_num_missing_tips = 100000000
 
     for key, value in processed_clades_.items():
         num_tips = value[0]
