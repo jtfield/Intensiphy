@@ -452,22 +452,23 @@ def fasterq_dump_reads(out_dir_, single_accession_):
     os.chdir(out_dir_ + "/read_files")
 
     downloaded_or_not = 'UNUSED'
-    # print("current working directory: ", os.getcwd())
-    # print("current alignment ", current_alignment)
+    print(downloaded_or_not)
+
     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output_to_string = reads_dl.communicate().decode("utf-8")
+    # print(reads_dl.communicate())
+    errs = reads_dl.stderr.read().decode()
+    out = reads_dl.stdout.read().decode()
 
-    print(output_to_string)
-
-    # fasterq-dump.3.0.0 err
-    if "err" in output_to_string and "quit with error" in output_to_string:
-
+    if "err" in errs or "err" in out:
+        print("not downloaded")
         downloaded_or_not = single_accession_
 
     else:
+        print("downloaded")
 
         downloaded_or_not = "DOWNLOADED"
 
+    print(downloaded_or_not)
     os.chdir(out_dir_)
 
     return downloaded_or_not
@@ -492,9 +493,11 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             if download_status != "DOWNLOADED":
 
-                not_downloaded_this_run.append(download_status)
+                not_downloaded_this_run.append(accession)
 
         if len(not_downloaded_this_run) < len_of_this_batch:
+            print("Batch contains at least some accessions that were downloaded.")
+            print("Proceeding to EP.")
         # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
 
             if pair_or_not_toggle == "PAIRED":
@@ -509,8 +512,11 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
                 subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
                 # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
+            print("Extensiphy runs complete.")
+            print("Cleaning up files for next batch.")
             split_alignment(ep_output_align, out_dir + '/sequence_storage')
 
+            print("Removing used read files.")
             rm_read_files(out_dir + '/read_files')
 
             shutil.rmtree(out_dir + '/intermediate_files/ep_output')
@@ -640,13 +646,13 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 #                 print("current working directory: ", os.getcwd())
 #                 print("STARTING NEXT EP LOOP")
 
-def fasterq_dump_reads(out_dir_, single_accession_):
-    os.chdir(out_dir_ + "/read_files")
-    # print("current working directory: ", os.getcwd())
-    # print("current alignment ", current_alignment)
-    reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print(reads_dl.communicate())
-    os.chdir(out_dir_)
+# def fasterq_dump_reads(out_dir_, single_accession_):
+#     os.chdir(out_dir_ + "/read_files")
+#     # print("current working directory: ", os.getcwd())
+#     # print("current alignment ", current_alignment)
+#     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     print(reads_dl.communicate())
+#     os.chdir(out_dir_)
 
 def run_ep(base_dir_, align_, outdir_):
     # print("current working directory: ", os.getcwd())
