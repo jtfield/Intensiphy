@@ -224,7 +224,8 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
     elif accession_option == "AUTO_PATHDB":
         print("option not available yet")
 
-    elif accession_option == "USER_INPUT":
+    elif accession_option == "USER_INPUT" or accession_option == "PATHODB":
+        now = datetime.datetime.now()
 
         output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
@@ -278,6 +279,34 @@ def read_csv_file(out_dir):
     os.chdir(out_dir)
 
     return output
+
+
+def read_pathodb_csv_file(out_dir):
+    """Reads the accession file provided by the users from NCBI Pathogen Database and parses compatible sequences."""
+    print("Reading CSV file off accession numbers.")
+    os.chdir(out_dir + "/accession_files")
+
+    current_accession = find_recent_date(out_dir + "/accession_files")
+
+    csv = pd.read_csv(current_accession)
+
+    output = []
+
+    filtered_df = csv.query("LibraryStrategy == 'WGS' and LibrarySource == 'GENOMIC' and Platform == 'ILLUMINA'")
+
+    paired_filtered_df = filtered_df.query("LibraryLayout == 'PAIRED'")
+    single_filtered_df = filtered_df.query("LibraryLayout == 'SINGLE'")
+
+    output.append(paired_filtered_df)
+    output.append(single_filtered_df)
+
+    # print(output)
+
+    os.chdir(out_dir)
+
+    return output
+
+
 
 def find_recent_date(folder_of_files):
     print("Finding the file with the most recent data.")
@@ -483,6 +512,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
     """Take batched accessions, download for each batch and run EP. Then split up the alignment and remove the original folder"""
     ref = out_dir +'/intermediate_files/reference.fas'
     ep_output_align = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
+    now = datetime.datetime.now()
 
     for accession_batch in accessions:
         # print(accession_batch)
