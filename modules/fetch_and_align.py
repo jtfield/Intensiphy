@@ -500,7 +500,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
                 not_downloaded_this_run.append(accession)
 
-        if len(not_downloaded_this_run) < (len_of_this_batch / 2):
+        if len(not_downloaded_this_run) <= (len_of_this_batch / 2):
             print("Batch contains at least some accessions that were downloaded.")
             print("Proceeding to EP.")
         # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
