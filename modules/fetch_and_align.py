@@ -225,7 +225,10 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
         print("option not available yet")
 
     elif accession_option == "USER_INPUT":
-        subprocess.run(['cp', input_file, folder_path + "/accession_files/"])
+
+        output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+
+        subprocess.run(['cp', input_file, folder_path + "/accession_files/" + output_file])
 
 
 def download_accessions(org_name, out_dir):
@@ -461,6 +464,8 @@ def fasterq_dump_reads(out_dir_, single_accession_):
 
     if "err" in errs or "err" in out:
         print("not downloaded")
+        print(out)
+        print(errs)
         downloaded_or_not = single_accession_
 
     else:
@@ -495,7 +500,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
                 not_downloaded_this_run.append(accession)
 
-        if len(not_downloaded_this_run) < len_of_this_batch:
+        if len(not_downloaded_this_run) < (len_of_this_batch / 2):
             print("Batch contains at least some accessions that were downloaded.")
             print("Proceeding to EP.")
         # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
@@ -514,7 +519,15 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             print("Extensiphy runs complete.")
             print("Cleaning up files for next batch.")
-            split_alignment(ep_output_align, out_dir + '/sequence_storage')
+            try:
+                split_alignment(ep_output_align, out_dir + '/sequence_storage')
+
+            except FileNotFoundError:
+                print("EP output alignment not found. Moving dev files to logs directory.")
+                ep_log_file = outdir + '/intermediate_files/ep_output/ep_dev_log.txt'
+                new_log_name = outdir + '/run_log_files/ep_log_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+                shutil.copyfile(ep_log_file, new_log_name)
+                shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
             print("Removing used read files.")
             rm_read_files(out_dir + '/read_files')
@@ -536,123 +549,50 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
 
 
+def check_downloaded_read_files(outdir_, read_format_toggle):
+    """
+    Checks if the downloaded read files look appropriate for a Extensiphy run.
+    Used to ensure an EP run can be performed, otherwise it must be skipped.
+    """
+    # establish read directory path
+    read_dir = outdir_ + "/read_files"
+
+    list_of_files = os.listdir(read_dir)
+
+    one_paired_accepted_srr_format = "SRR\w+_1.fastq"
+    two_paired_accepted_srr_format = "SRR\w+_2.fastq"
+
+    one_paired_accepted_err_format = "ERR\w+_1.fastq"
+    two_paired_accepted_err_format = "ERR\w+_2.fastq"
+
+    one_paired_compile_srr = re.compile(one_paired_accepted_srr_format)
+    one_paired_compile_err = re.compile(one_paired_accepted_err_format)
+    two_paired_compile_srr = re.compile(two_paired_accepted_srr_format)
+    two_paired_compile_err = re.compile(two_paired_accepted_err_format)
+
+    single_accepted_srr_format = "SRR\w+_1.fastq"
+    single_accepted_err_format = "ERR\w+_1.fastq"
 
 
-    # # Identify if we're processing data by downloading in batches between Extesniphy runs
-    # # or by downloading everything all at once and running extensiphy after
-    # print("Beginning bulk downloading data and updating alignment using Extensiphy.")
-    # # pull accessions from df
-    # run_ids = []
-    # for name, value in accessions['Run'].iteritems():
-    #     run_ids.append(value)
-    #
-    # if method == False:
-    #     # continuous gradual downloading of data has been selected/left as default.
-    #     batches_run = batch_download(run_ids, run_num[0], out_dir, align)
-    #
-    # elif method:
-    #     # Bulk download all fastq files before running Extensiphy
-    #     bulk_run = bulk_download(run_ids, out_dir)
-    #
-    #     print("Bulk data download complete.")
-    #     print("Beginning Extensiphy run to update your alignment.")
-    #
-    #     os.chdir(out_dir)
-    #
-    #     # TODO: specify cleanup of intermediate files in all runs
-    #     subprocess.run(["multi_map.sh", "-a", align, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(run_num[0]) ,"-c", str(run_num[1]), "-1", "_1.fastq", "-2", "_2.fastq" ])
+    single_compile_srr = re.compile(single_accepted_srr_format)
+    single_compile_err = re.compile(single_accepted_err_format)
 
-# def batch_download(accession_list, runs_number, out_dir, alignment):
-#     """Prepares accessions to be downloaded in batches between runs of Extensiphy."""
-#     batches_of_accessions = prepare_batch_accessions(accession_list, runs_number)
-#     print("Beginning batch data download and run scheme.")
-#     print("^^^^^^^^^^^^^^^^^^^")
-#
-#     read_dir_path = out_dir + "/read_files"
-#     ep_output = out_dir + "/ep_tmp_outputs"
-#     standard_align_path = ep_output + "/RESULTS/extended.aln"
-#     align_outdir = out_dir + "/alignments"
-#     current_alignment = alignment
-#     ref_taxon = ""
-#
-#     os.chdir(read_dir_path)
-#
-# ########################################################################
-# # testing EP running on a single accession instead of in a loop
-#     # grouped_accession = batches_of_accessions[0]
-#     # print(grouped_accession)
-#     # single_accession = grouped_accession[0]
-#     #
-#     # fasterq_dump_reads(out_dir, single_accession)
-#     #
-#     # run_ep(out_dir, current_alignment, ep_output)
-#     #
-#     # print("DONE")
-#
-# ########################################################################
-#
-#
-#
-#     for num, accessions in enumerate(batches_of_accessions):
-#         print("BEGINNING NEW BATCH SECTION.")
-#
-#         print("Currend Accession Batch ", accessions)
-#
-#         if num <= 2:
-#
-#             # os.chdir(out_dir + "/read_files")
-#             print("current working directory: ", os.getcwd())
-#             # print(accessions)
-#             for single_accession in accessions:
-#                 print("BEGINNING EP LOOP.")
-#
-#                 fasterq_dump_reads(out_dir, single_accession)
-#
-#                 run_ep(out_dir, current_alignment, ep_output)
-#
-#
-#                 exit()
-#
-#                 check_ep_output = os.path.isdir(ep_output)
-#                 if check_ep_output:
-#
-#                     print("Found EP output directory")
-#                     print("current alignment ", current_alignment)
-#                     print("current working directory: ", os.getcwd())
-#                     # Copy and rename output alignment and put it the alignments folder for the next round
-#                     align_rename_and_move(standard_align_path, align_outdir)
-#
-#                     print("current working directory: ", os.getcwd())
-#                     current_alignment = find_recent_date(align_outdir)
-#                     print("curent alignment", current_alignment)
-#
-#
-#                     print("current working directory: ", os.getcwd())
-#                     os.rename(ep_output, ep_output + "_" + str(num))
-#
-#                     print("current working directory: ", os.getcwd())
-#                     rm_read_files(read_dir_path)
-#
-#                     # Remove Extensiphy output directory and contents and prepare for next phase of loop
-#                     # try:
-#                     #     shutil.rmtree(ep_output)
-#                     # except OSError as e:
-#                     #     print("Error: %s : %s" % (ep_output, e.strerror))
-#
-#                 elif check_ep_output == False:
-#                     print("ERROR: no EP output directory was found.")
-#                     exit()
-#
-#                 print("current working directory: ", os.getcwd())
-#                 print("STARTING NEXT EP LOOP")
+    if read_format_toggle == "PAIRED":
+        for file in list_of_files:
+            check_one_paired_srr = re.match(one_paired_compile_srr, file)
+            check_one_paired_err = re.match(one_paired_compile_err, file)
+            check_one_paired_srr = re.match(one_paired_compile_srr, file)
+            check_one_paired_err = re.match(one_paired_compile_err, file)
+            if check_one_paired_err:
+                print("Paired ERR")
+                print(check_one_paired_err[0])
 
-# def fasterq_dump_reads(out_dir_, single_accession_):
-#     os.chdir(out_dir_ + "/read_files")
-#     # print("current working directory: ", os.getcwd())
-#     # print("current alignment ", current_alignment)
-#     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#     print(reads_dl.communicate())
-#     os.chdir(out_dir_)
+                paired_read_set = check_one_paired_err[0].replace('_1','_2')
+                print(paired_read_set)
+
+
+
+
 
 def run_ep(base_dir_, align_, outdir_):
     # print("current working directory: ", os.getcwd())
