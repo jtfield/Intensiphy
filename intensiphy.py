@@ -29,8 +29,9 @@ def parse_args():
     to a newick tree file corresponding to an input alignment. Don\' use if not inputting an alignment.' )
     parser.add_argument('--cores')
     parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
-    parser.add_argument('--accession_method', default="AUTO_DL", help='Dictates how collecting and inputting accession numbers will be handled. \
-        (OPTIONS: USER_INPUT, AUTO_DL, PATHODB), (DEFAULT: AUTO_DL)')
+    parser.add_argument('--accession_method', default="AUTO_DL", type=str, \
+    help='Dictates how collecting and inputting accession numbers will be handled. \
+        (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT: AUTO_DL)')
     parser.add_argument('--ep_out_dir', help='Absolute path and folder name to create for outputs')
     # parser.add_argument('--path_to_ep_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
@@ -68,6 +69,14 @@ def main():
     # print("Working out how to handle getting accession numbers.")
     accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
 
+    #read list of accessions
+    read_accessions = ''
+    if args.accession_method == 'AUTO_DL':
+        read_accessions = read_csv_file(absolute_output_dir_path)
+
+    elif args.accession_method == 'USER_INPUT':
+        read_accessions = read_pathodb_csv_file(absolute_output_dir_path)
+
     print("Working out what kind of alignment we're using.")
     if dir_existence == False:
 
@@ -84,12 +93,16 @@ def main():
 
     read_fasta = read_fasta_names(absolute_output_dir_path)
 
-    #read list of accessions
-    read_accessions = read_csv_file(absolute_output_dir_path)
-
+    # #read list of accessions
+    # read_accessions = read_csv_file(absolute_output_dir_path)
+    remove_paired_dupes = ''
+    remove_single_dupes = ''
     #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
-    remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
-    remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+    if args.accession_method == 'AUTO_DL':
+        remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
+        remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
+    elif args.accession_method == 'USER_INPUT':
+        remove_paired_dupes = check_duplicate_accesions(read_accessions, read_fasta)
 
     # print(remove_paired_dupes)
     # print(remove_single_dupes)
@@ -97,8 +110,8 @@ def main():
     paired_batch_accessions = prepare_batch_accessions(remove_paired_dupes, get_cores[0])
     single_batch_accessions = prepare_batch_accessions(remove_single_dupes, get_cores[0])
 
-    # print(paired_batch_accessions)
-    # print(single_batch_accessions)
+    print(paired_batch_accessions)
+    print(single_batch_accessions)
 
     write_current_run_names(absolute_output_dir_path, paired_batch_accessions)
     write_current_run_names(absolute_output_dir_path, single_batch_accessions)

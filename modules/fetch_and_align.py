@@ -5,6 +5,7 @@ import argparse
 import pathlib
 import shutil
 from numpy.lib.shape_base import split
+import numpy as np
 import pandas as pd
 import subprocess
 import datetime
@@ -196,24 +197,6 @@ def clean_incomplete_downloads(outdir):
 
 
 
-
-
-
-def restructure_dates(file_name):
-    """Reads a file name with a date structured as Intensiphy produces them and restructures the included date for parsing of most recent file"""
-    print("Restructuring file creation times.")
-    split_path_and_file = file_name.rsplit("/", 1)
-    #print(split_path_and_file)
-    condensed_date = split_path_and_file[0]
-    #print(condensed_date)
-    condensed_date = split_path_and_file[0].replace("-","")
-    #print(condensed_date)
-    condensed_date = condensed_date.split("_")
-    #print(condensed_date)
-    condensed_date = int(condensed_date[1])
-    return condensed_date
-
-
 def handle_accession_options(accession_option, organism, folder_path, input_file):
     """Only for use when not automatically downloading SRA numbers"""
     print("Processing accession input option.")
@@ -282,9 +265,10 @@ def read_csv_file(out_dir):
 
 
 def read_pathodb_csv_file(out_dir):
-    """Reads the accession file provided by the users from NCBI Pathogen Database and parses compatible sequences."""
+    """Reads the accession file provided by the users. This assume the user has done some filtering to paired end only along with some other information."""
     print("Reading CSV file off accession numbers.")
     os.chdir(out_dir + "/accession_files")
+
 
     current_accession = find_recent_date(out_dir + "/accession_files")
 
@@ -292,20 +276,30 @@ def read_pathodb_csv_file(out_dir):
 
     output = []
 
-    filtered_df = csv.query("LibraryStrategy == 'WGS' and LibrarySource == 'GENOMIC' and Platform == 'ILLUMINA'")
+#################################################################
+    # This machinary is specific to working with pathogen db csv files when no external processing has been performed
+    # Leaving it here but moving forward we're assuming the user has processed any hand fed inputs to include columns/datapoints they are interested in
 
-    paired_filtered_df = filtered_df.query("LibraryLayout == 'PAIRED'")
-    single_filtered_df = filtered_df.query("LibraryLayout == 'SINGLE'")
+    # csv = csv.rename(columns={'Library layout': 'LibraryLayout'})
+    #
+    # filtered_df = csv.query("LibraryLayout == 'PAIRED' and Platform == 'ILLUMINA'")
+    #
+    # filtered_df['Location'].replace('', np.nan, inplace=True)
+    #
+    # filtered_df.dropna(subset=['Location'], inplace=True)
+    #
+    # os.chdir(out_dir)
+    #
+    # return filtered_df
+#######################################################################
 
-    output.append(paired_filtered_df)
-    output.append(single_filtered_df)
+    csv['Run'].replace('', np.nan, inplace=True)
 
-    # print(output)
+    csv.dropna(subset=['Run'], inplace=True)
 
     os.chdir(out_dir)
 
-    return output
-
+    return csv
 
 
 def find_recent_date(folder_of_files):
@@ -317,7 +311,9 @@ def find_recent_date(folder_of_files):
     list_of_files = []
 
     for file in os.listdir(folder_of_files):
+        # print(file)
         file_date = restructure_dates(file)
+        # print(file_date)
         data = []
         data.append(file)
         # split_file = file.split('_')
@@ -346,6 +342,25 @@ def find_recent_date(folder_of_files):
     os.chdir(cwd)
 
     return folder_of_files + '/' + current_accession_file
+
+
+def restructure_dates(file_name):
+    """Reads a file name with a date structured as Intensiphy produces them and restructures the included date for parsing of most recent file"""
+    print("Restructuring file creation times.")
+    split_path_and_file = file_name.rsplit("/", 1)
+    #print(split_path_and_file)
+    condensed_date = split_path_and_file[0]
+    #print(condensed_date)
+    condensed_date = split_path_and_file[0].replace("-","")
+    #print(condensed_date)
+    condensed_date = condensed_date.split("_")
+    #print(condensed_date)
+    condensed_date = int(condensed_date[1])
+    # print(condensed_date)
+
+    return condensed_date
+
+
 
 def calulate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
@@ -384,6 +399,7 @@ def check_duplicate_accesions(accession_db, fasta_names):
     print("Checking for accessions already present in alignment")
     sras_to_keep = []
 
+    print(accession_db['Run'])
     sra_ids = accession_db['Run'].tolist()
     # print("Starting list of sras ", sra_ids)
     # print(fasta_names)
@@ -435,6 +451,7 @@ def read_fasta_names(_outdir):
 
     for name in individual_seq_folders:
         names.append(name)
+        print(name)
 
     return names
 
