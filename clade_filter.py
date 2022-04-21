@@ -45,6 +45,8 @@ def main():
 
     clade_metadata = pull_clade_metadata(clades[chosen_clade], metadata_table)
 
+    clade_metadata.to_csv(args.output_file)
+
     # output = open(args.output_file, 'w')
     #
     # for name in clades[chosen_clade]:
@@ -209,13 +211,19 @@ def pull_clade_metadata(clade_, big_df_):
             found_id = big_df_drop_na_runs.loc[big_df_drop_na_runs['Run'].str.contains(id, na=False)]
             # print(found_id)
 
-            clade_df.loc[len(clade_df.index)] = found_id
+            clade_df = clade_df.append(found_id)
+
+            # clade_df = clade_df.append(pd.Series(found_id, index=clade_df.columns[:len(found_id)]), ignore_index=True)
+
+            # clade_df.loc[len(clade_df.index)] = found_id
 
         except IndexError:
             print("Missing tip in chosen clade: ", id)
 
 
-    print(clade_df)
+    # print(clade_df)
+
+    return clade_df
 
 
 if __name__ == '__main__':
