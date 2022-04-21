@@ -77,11 +77,11 @@ def main():
     elif args.accession_method == 'USER_INPUT':
         read_accessions = read_pathodb_csv_file(absolute_output_dir_path)
 
-    print("Working out what kind of alignment we're using.")
+
+    print("Working out what kind of run we're doing.")
     if dir_existence == False:
 
         make_align(dir_existence, absolute_output_dir_path, args.accs_file, args.align_file)
-
 
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 

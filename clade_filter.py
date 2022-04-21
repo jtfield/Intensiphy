@@ -43,13 +43,16 @@ def main():
     # print(chosen_clade)
     # print(clades)
 
-    output = open(args.output_file, 'w')
+    clade_metadata = pull_clade_metadata(clades[chosen_clade], metadata_table)
 
-    for name in clades[chosen_clade]:
-        output.write(name)
-        output.write('\n')
+    # output = open(args.output_file, 'w')
+    #
+    # for name in clades[chosen_clade]:
+    #     output.write(name)
+    #     output.write('\n')
+    #
+    # output.close()
 
-    output.close()
 
 
 def make_clades_list(full_tree, lower_bound, upper_bound):
@@ -185,6 +188,35 @@ def make_clade_decision(processed_clades_):
 
     print(processed_clades_[current_best_clade])
     return current_best_clade
+
+
+def pull_clade_metadata(clade_, big_df_):
+
+    #pull column names of big metadata df
+    df_columns = big_df_.columns
+
+    #initialize dataframe with columns
+    clade_df = pd.DataFrame(columns=df_columns)
+
+    big_df_drop_na_runs = big_df_.dropna(subset=['Run'])
+
+    #Find sample ids in the big dataframe
+    for id in clade_:
+        try:
+            # print(id)
+            # print(big_df_drop_na_runs['Run'])
+
+            found_id = big_df_drop_na_runs.loc[big_df_drop_na_runs['Run'].str.contains(id, na=False)]
+            # print(found_id)
+
+            clade_df.loc[len(clade_df.index)] = found_id
+
+        except IndexError:
+            print("Missing tip in chosen clade: ", id)
+
+
+    print(clade_df)
+
 
 if __name__ == '__main__':
     main()

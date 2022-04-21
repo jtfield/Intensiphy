@@ -22,13 +22,20 @@ def main():
 
     read_csv = pd.read_csv(args.csv_file)
 
+
+
+###################################################
+# Building sample count per bin per location functions
     sort_by_year = only_years(read_csv)
 
     get_year_ranges = year_ranges(read_csv)
 
-    # analyze_by_region = get_regions(sort_by_year)
-    #
-    # make_plots(analyze_by_region)
+    analyze_by_region = get_regions(sort_by_year)
+
+    make_plots(analyze_by_region)
+
+##################################################
+
 
 
 
@@ -61,7 +68,7 @@ def year_ranges(df_):
 
     d_loc = df_['Location'].value_counts()
     print(d_loc)
-    
+
 def get_regions(df_):
 
     bins = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
