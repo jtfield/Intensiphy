@@ -47,15 +47,6 @@ def main():
 
     clade_metadata.to_csv(args.output_file)
 
-    # output = open(args.output_file, 'w')
-    #
-    # for name in clades[chosen_clade]:
-    #     output.write(name)
-    #     output.write('\n')
-    #
-    # output.close()
-
-
 
 def make_clades_list(full_tree, lower_bound, upper_bound):
 

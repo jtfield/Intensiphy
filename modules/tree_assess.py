@@ -34,7 +34,7 @@ def handle_starting_tree(outdir, threads, tree_var):
 
             symlink_file = pathlib.Path(abs_tree_path)
 
-            new_tree = output_dir_path + '/intermediate_files/RAxML_bestTree.starting_tree.tre'
+            new_tree = tree_storage + '/RAxML_bestTree.starting_tree.tre'
             new_tree = pathlib.Path(new_tree)
 
             new_tree.symlink_to(symlink_file)
