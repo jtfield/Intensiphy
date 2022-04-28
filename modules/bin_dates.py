@@ -37,13 +37,34 @@ def main():
 
     year_only_df = metadata_csv.copy()
 
-    year_only_df_dates = year_only_df['Collection date'].astype(str)
+    # year_only_df_dates = year_only_df['Collection date'].astype(str)
 
-    year_only_df_dates.replace({r'(\d\d\d\d)(-\d\d)' : '\\1'}, regex=True, inplace=True)
+    yead_only_df = year_only_df['Collection date'].astype(str)
 
-    for row in year_only_df_dates:
-        print(row)
-        print(type(row))
+    # year_only_df_dates.replace({r'(\d\d\d\d)(-\d\d)' : '\\1'}, regex=True, inplace=True)
+
+    year_only_df.replace({r'(\d\d\d\d)(-\d\d)' : '\\1'}, regex=True, inplace=True)
+
+    int_series = pd.to_numeric(year_only_df['Collection date'])
+
+    print(int_series.value_counts())
+
+    max_year = int_series.max()
+    min_year = int_series.min()
+
+    print(min_year)
+    print(max_year)
+
+    # year_max = year_only_df['Collection date'].loc[year_only_df['Collection date'].idmax()]
+    #
+    # year_min = year_only_df['Collection date'].loc[year_only_df['Collection date'].idmin()]
+    #
+    # print(year_min)
+    # print(year_max)
+
+    # for row in int_series:
+    #     print(row)
+    #     print(type(row))
 
     # year_only_df['Collection date'].replace({r'(\d\d\d\d)(-\d\d)(-\d\d)' : '\\1'}, regex=True, inplace=True)
     #
