@@ -79,6 +79,9 @@ def clean_ep_run(outdir):
         except:
             print("Could not delete dir :", ep_dir)
 
+    else:
+        print("No leftover Extensiphy directory was found.")
+
 
 
 

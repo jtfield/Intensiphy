@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--accession_method', default="AUTO_DL", type=str, \
     help='Dictates how collecting and inputting accession numbers will be handled. \
         (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT: AUTO_DL)')
-    parser.add_argument('--ep_out_dir', default='ip_output' help='Absolute path and folder name to create for outputs')
+    parser.add_argument('--ep_out_dir', default='ip_output', help='Absolute path and folder name to create for outputs')
     # parser.add_argument('--path_to_ep_dir', help='Absolute path and folder name to create for outputs')
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
