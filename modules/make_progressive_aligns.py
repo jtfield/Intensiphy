@@ -87,6 +87,8 @@ def make_aligns_and_dirs(batch_list, outdir, ip_dir):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
+    abs_path_to_outdir = os.path.realpath(outdir)
+
     num_of_aligns = len(batch_list)
 
     dir_name_template = 'alignment_dir_'
@@ -96,7 +98,7 @@ def make_aligns_and_dirs(batch_list, outdir, ip_dir):
 
     # print(num_of_alins)
 
-    os.chdir(outdir)
+    os.chdir(abs_path_to_outdir)
 
     for num in range(0, num_of_aligns):
         dir_name = dir_name_template + str(num)
@@ -105,37 +107,69 @@ def make_aligns_and_dirs(batch_list, outdir, ip_dir):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-    for num, seq_names in enumerate(batch_list):
+    for num, seq_batch in enumerate(batch_list):
 
-        print(num)
-        print(seq_names)
+        # print(num)
+        # print(seq_batch)
 
-        make_align(seq_names, ip_dir + '/sequence_storage', outdir + '/' + list_of_dirs[num])
-
+        returned_seq = make_align(seq_batch, ip_dir + '/sequence_storage', abs_path_to_outdir + '/' + list_of_dirs[num])[0]
+        # print(returned_seq)
 
 def make_align(list_of_seqs, seq_storage, outdir):
 
+    print(list_of_seqs)
+
     alignment = []
+    seq_names = []
 
     for seq in list_of_seqs:
 
-        print(seq)
+        seq_file = seq_storage + '/' + seq + '/' + seq + '_.fas'
 
-        read_seq_file = open(seq_storage + '/' + seq + '/' + seq + '_.fas', 'r').read()
+        if os.path.exists(seq_file):
 
-        split_align_file = read_seq_file.split('>')
+            # print(seq)
 
-        for chunk in split_align_file:
+            read_seq_file = open(seq_file, 'r').read()
 
-            if len(chunk) > 0:
+            # print(read_seq_file)
 
-                split_name_and_seq = chunk.split('\n', 1)
-                name = split_name_and_seq[0]
-                seq = split_name_and_seq[1]
+            alignment.append(read_seq_file + '\n')
 
-                alignment.append(chunk)
 
-    # print(chunk)
+
+            # split_contents = read_seq_file.split('\n', 1)
+            #
+            # seq_names.append(split_contents[0])
+            #
+            # print(seq_names)
+
+        # split_align_file = read_seq_file.split('>')
+        #
+        # for chunk in split_align_file:
+        #
+        #     if len(chunk) > 0:
+        #
+        #         # split_name_and_seq = chunk.split('\n', 1)
+        #         # name = split_name_and_seq[0]
+        #         # seq = split_name_and_seq[1]
+        #
+        #         fixed_align = '>' + chunk
+        #
+        #         # print(fixed_align)
+        #
+        #         alignment.append(fixed_align)
+
+
+    print(outdir)
+    output = open(outdir + '/extended.aln','w')
+
+    for seq in alignment:
+        output.write(seq)
+
+    output.close()
+
+    return alignment
 
 
 
