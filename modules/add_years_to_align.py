@@ -24,7 +24,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    
+    output = []
 
     input_csv = pd.read_csv(args.metadata_csv)
 
@@ -48,17 +48,33 @@ def main():
             try:
                 found_row = input_csv.loc[input_csv['Run'] == name].fillna('0')
                 date = found_row[args.date_column_name].values[0]
-                print(date)
+                # print(date)
 
                 find_date = re.match(compile_year_regex, date)
-
+                name_and_date = ''
                 if find_date:
 
                     find_date = find_date[0]
-                    print(name + '_' + find_date)
+
+                    if find_date != '0':
+                        name_and_date = name + '_' + find_date
+                        # print(name_and_date)
+                        # output.append('>' + name_and_date + '\n' + seq)
+
+                else:
+                    name_and_date = name
+
+                output.append('>' + name_and_date + '\n' + seq)
 
             except ValueError:
                 print("not found ", name)
+
+
+    output_file = open(args.output_file, 'w')
+    for item in output:
+        output_file.write(item)
+
+    output_file.close()
 
 
 
