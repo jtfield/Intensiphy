@@ -47,7 +47,11 @@ def main():
 
             try:
                 found_row = input_csv.loc[input_csv['Run'] == name].fillna('0')
+                if name == 'ERR2525602':
+                    print(found_row['Collection date'])
+                    print(found_row['SRA release date'])
                 date = found_row[args.date_column_name].values[0]
+                backup_date = found_row['SRA release date'].values[0]
                 # print(date)
 
                 find_date = re.match(compile_year_regex, date)
@@ -62,7 +66,18 @@ def main():
                         # output.append('>' + name_and_date + '\n' + seq)
 
                 else:
-                    name_and_date = name
+                    find_backup_date = re.match(compile_year_regex, backup_date)
+
+                    if find_backup_date:
+
+                        find_backup_date = find_backup_date[0]
+                        name_and_date = name + '_' + find_backup_date
+
+                    # name_and_date = name
+
+                if len(name_and_date) == 0:
+                    print(name)
+                    print(name_and_date)
 
                 output.append('>' + name_and_date + '\n' + seq)
 
