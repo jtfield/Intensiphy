@@ -1,0 +1,22 @@
+#This workflow describes the commands to run after you have selected a clade to isolate in a starting phylogeny. 
+#You'll update the starting phylogeny with new sequences with IP and then run various scripts to separate the updated clade from the rest of the dataset.
+#Finally, you can run a full maximum likelihood analysis on the selected clade
+
+#Run IP.
+#This command may have a lot of variation depending on the inputs
+intensiphy.py --cores 16 --ep_out_dir big_gon_ip_run --organism "Neisseria gonorrhoeae[Organism]" --align_file extended.aln --accession_method USER_INPUT --starting_tree big_gon_starting.tre --accs_file gon_filt_location_date_run.csv
+
+#Now build alignments of the database that include the starting alignment and the entire database split between separate files.
+#This is done to cut down on the time it takes to place all the new samples in the original tree.
+#It also makes the placement process more parallelizable (you know what i mean).
+make_progressive_aligns.py --align_file clade_of_interest_with_outgroup.fas --ip_dir big_gon_ip_run --split_number 10
+
+#Now place the samples from the alignment into the original phylogeny using the raxml EPA
+raxmlHPC-PTHREADS -f v -T 10 -n placement.tre -s extended.aln -t clade_of_interest_with_outgroup.tre -m GTRGAMMA
+
+#Ok, now you need to move all the placement trees into the same directory.
+
+#Once you've moved/copied all the placement trees, run this program to build a table of all the samples that are now in the updated clade
+mrca_getter.py
+
+
