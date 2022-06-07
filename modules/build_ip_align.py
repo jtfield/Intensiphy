@@ -37,7 +37,7 @@ def construct_align_(outdir):
 
     output_alignment_path = align_dir_full_path + '/extended.aln'
 
-    os.mkdir(phylo_dir_full_path)
+    os.mkdir(align_dir_full_path)
 
     # cat_command_start = ['cat']
     output = open(output_alignment_path, 'a')

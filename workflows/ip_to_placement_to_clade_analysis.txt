@@ -19,4 +19,9 @@ raxmlHPC-PTHREADS -f v -T 10 -n placement.tre -s extended.aln -t clade_of_intere
 #Once you've moved/copied all the placement trees, run this program to build a table of all the samples that are now in the updated clade
 mrca_getter.py
 
+#Once you have the csv file with all the samples in your updated clade, you need to build the overall alignment and pull the sequences for your clade.
+#Run this command to build the clade from the IP output folder.
+build_ip_align.py
 
+#Once you have your clade alignment, you're good to go with whatever analysis you want.
+#Infer a resolved phylogeny.

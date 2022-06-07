@@ -28,7 +28,10 @@ def main():
 
     tree = dendropy.Tree.get(path=args.tree, schema="nexus", preserve_underscores=True)
 
-    print(tree)
+    # print(tree)
+
+    tree.write(path=args.output_file, schema="newick")
+
 
 
 
