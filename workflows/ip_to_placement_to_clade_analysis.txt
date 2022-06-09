@@ -15,13 +15,18 @@ make_progressive_aligns.py --align_file clade_of_interest_with_outgroup.fas --ip
 raxmlHPC-PTHREADS -f v -T 10 -n placement.tre -s extended.aln -t clade_of_interest_with_outgroup.tre -m GTRGAMMA
 
 #Ok, now you need to move all the placement trees into the same directory.
+placement_trees_combiner.py
+
 
 #Once you've moved/copied all the placement trees, run this program to build a table of all the samples that are now in the updated clade
 mrca_getter.py
 
 #Once you have the csv file with all the samples in your updated clade, you need to build the overall alignment and pull the sequences for your clade.
-#Run this command to build the clade from the IP output folder.
+#Run this command to build the full alignment from the IP output folder.
 build_ip_align.py
+
+#This command will use the CSV file for your clade (plus any outgroups you added to the clade) to pull the clade from the alignment into a new alignment file
+pull_clade_from_align.py
 
 #Once you have your clade alignment, you're good to go with whatever analysis you want.
 #Infer a resolved phylogeny.
