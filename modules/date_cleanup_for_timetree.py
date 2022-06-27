@@ -38,8 +38,13 @@ def main():
             pull_found_year = re.match(compile_year_regex, row['Collection date'])
 
             if pull_found_year:
-                input_csv.loc[idx, 'Collection date'] = pull_found_year[0]
-
+                # print("#########################")
+                # print("FIXED YEAR")
+                # print(pull_found_year[0])
+                # input_csv.loc[idx, 'Collection date'] = pull_found_year[0]
+                # print(input_csv.loc[idx, 'Collection date'])
+                row.loc['Collection date'] = pull_found_year[0]
+                print(row['Collection date'])
                 new_df = new_df.append(row)
             # print(row['Run'])
 
@@ -50,15 +55,20 @@ def main():
 
             if pull_year:
 
-                input_csv.loc[idx, 'Collection date'] = pull_year[0]
-                print(row['Collection date'])
+                # input_csv.loc[idx, 'Collection date'] = pull_year[0]
+                row.loc['Collection date'] = pull_found_year[0]
+                # print("#######################")
+                # print("FOUND REPLACEMENT DATE")
+                # print(row['Collection date'])
+                # print(pull_year)
+                # print(idx)
                 new_df = new_df.append(row)
 
-    #             new_df.append(replacement_date_row)
-    #
-    # print(new_df)
 
     new_df.to_csv(args.output_file)
+
+
+
 
 
     # timetree_df = input_csv[['Run', 'Collection date']].copy()
