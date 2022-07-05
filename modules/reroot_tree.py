@@ -10,6 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='reroot tree', \
         description='Run this program to reformat a sequence names in an alignment file and add the relevant date found in a csv.')
     parser.add_argument('--input_tree', help='Alignment file with dates added.')
+    parser.add_argument('--root_taxon', help='the taxon you wish to use as the new root.')
     parser.add_argument('--output_tree', default='rerooted.tre', help='Alignment file with dates added.')
     return parser.parse_args()
 
@@ -20,7 +21,9 @@ def main():
 
     # mrca = tree.mrca(taxon_labels=["ERR2525602", "ERR2525603"])
 
-    mrca = tree.mrca(taxon_labels=["SRR8171903"])
+    # mrca = tree.mrca(taxon_labels=["SRR8833557", "SRR4416059"])
+
+    mrca = tree.mrca(taxon_labels=[args.root_taxon])
 
     tree.reroot_at_edge(mrca.edge, update_bipartitions=False)
 
