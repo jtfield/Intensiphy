@@ -22,12 +22,55 @@ def parse_args():
 def main():
     args = parse_args()
 
-    input_csv = pd.read_csv(args.metadata_csv).fillna('0')
+    # input_csv = pd.read_csv(args.metadata_csv).fillna('0')
+    input_csv = pd.read_csv(args.metadata_csv)
 
     columns = input_csv.columns
 
     new_df = pd.DataFrame(columns=columns)
 
+    cleaned_table = new_date_cleanup_method(input_csv, new_df)
+
+    # print(cleaned_table['Collection date'])
+
+    cleaned_table.to_csv(args.output_file)
+
+
+def new_date_cleanup_method(orig_table, new_table):
+    year_month_regex = '(\d\d\d\d)-(\d\d)'
+
+    compile_year_month_regex = re.compile(year_month_regex)
+
+    for idx, row in orig_table.iterrows():
+
+        # print(row['Collection date'])
+        # print(type(row['Collection date']))
+        if type(row['Collection date']) == str:
+            # print(row['Collection date'])
+
+            pull_found_year_month = re.match(compile_year_month_regex, row['Collection date'])
+
+            if pull_found_year_month:
+
+                # print(pull_found_year_month)
+                # print(pull_found_year_month.group())
+                # print(pull_found_year_month.group(1))
+                # print(pull_found_year_month.group(2))
+                print(pull_found_year_month.group(1) + '.' + pull_found_year_month.group(2))
+                row.loc['Collection date'] = pull_found_year_month.group(1) + '.' + pull_found_year_month.group(2)
+                # # print(row['Collection date'])
+                new_table = new_table.append(row)
+
+
+        elif type(row['Collection date']) != str:
+            # print(row['Collection date'])
+            new_table = new_table.append(row)
+
+    return new_table
+
+
+
+def old_date_cleanup_method():
     year_regex = '\d\d\d\d'
 
     compile_year_regex = re.compile(year_regex)
@@ -66,8 +109,6 @@ def main():
 
 
     new_df.to_csv(args.output_file)
-
-
 
 
 

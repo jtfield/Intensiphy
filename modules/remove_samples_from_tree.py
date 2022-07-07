@@ -25,7 +25,7 @@ def main():
 
     names_to_keep = []
 
-    names_to_remove = ['ERR2525602', 'ERR2525603']
+    names_to_remove = ['SRR8833557', 'SRR17007432', 'SRR16996016', 'SRR17541083', 'SRR9877804', 'SRR9985644', 'SRR11904725', 'SRR11724687', 'SRR11698932', 'SRR11724686']
 
     # # establish taxon namespace
     tns = dendropy.TaxonNamespace()
