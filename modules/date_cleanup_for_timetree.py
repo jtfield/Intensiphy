@@ -38,8 +38,10 @@ def main():
 
 def new_date_cleanup_method(orig_table, new_table):
     year_month_regex = '(\d\d\d\d)-(\d\d)'
+    just_year = '\d\d\d\d'
 
     compile_year_month_regex = re.compile(year_month_regex)
+    compile_just_year = re.compile(just_year)
 
     for idx, row in orig_table.iterrows():
 
@@ -60,6 +62,21 @@ def new_date_cleanup_method(orig_table, new_table):
                 row.loc['Collection date'] = pull_found_year_month.group(1) + '.' + pull_found_year_month.group(2)
                 # # print(row['Collection date'])
                 new_table = new_table.append(row)
+
+            elif not pull_found_year_month:
+                print("no month year match")
+
+                pull_just_year = re.match(compile_just_year, row['Collection date'])
+
+                if pull_just_year:
+
+                    row.loc['Collection date'] = ''
+
+                    print(row.loc['Collection date'])
+
+                    new_table = new_table.append(row)
+
+
 
 
         elif type(row['Collection date']) != str:

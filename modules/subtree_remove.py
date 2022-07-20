@@ -15,6 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='remove taxa from tree', \
         description='Provide a list of taxa to keep. Prune the rest of the taxa.')
     parser.add_argument('--tree_file', default=False, help='input phylogeny option.')
+    parser.add_argument('--tree_format', default='newick', help='input phylogeny file type.')
     parser.add_argument('--taxa_list', default=False, help='File that contains the names of each taxon to remove.')
     parser.add_argument('--output_tree_file', default='trimmed_tree.tre', help='output tree file. (DEFAULT: trimmed_tree.tre)')
 
@@ -28,7 +29,7 @@ def main():
     # # establish taxon namespace
     tns = dendropy.TaxonNamespace()
     #
-    in_tree = dendropy.Tree.get(path=args.tree_file, schema='newick', taxon_namespace=tns, preserve_underscores=True)
+    in_tree = dendropy.Tree.get(path=args.tree_file, schema=args.tree_format, taxon_namespace=tns, preserve_underscores=True)
     #
     # print(in_tree)
 
