@@ -67,13 +67,15 @@ def main():
             if tax not in tree_2_taxa:
                 taxa_to_prune.append(tax.label)
 
-        print(true.as_ascii_plot())
-        print(true)
+        print(len(taxa_to_prune))
 
-        true.prune_taxa_with_labels(taxa_to_prune)
-        print(true)
-
-        print(true.as_ascii_plot())
+        # print(true.as_ascii_plot())
+        # print(true)
+        #
+        # # true.prune_taxa_with_labels(taxa_to_prune)
+        # print(true)
+        #
+        # print(true.as_ascii_plot())
 
     elif tree_2_size > tree_1_size:
         print('new bigger than true')
@@ -81,13 +83,15 @@ def main():
             if tax not in tree_1_taxa:
                 taxa_to_prune.append(tax.label)
 
-        print(new.as_ascii_plot())
-        print(new)
+        print(len(taxa_to_prune))
 
-        new.prune_taxa_with_labels(taxa_to_prune)
-        print(new)
-
-        print(new.as_ascii_plot())
+        # print(new.as_ascii_plot())
+        # print(new)
+        #
+        # new.prune_taxa_with_labels(taxa_to_prune)
+        # print(new)
+        #
+        # print(new.as_ascii_plot())
 
     # print(true)
     #     true.attach_taxon_namespace(tns)
