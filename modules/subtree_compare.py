@@ -6,98 +6,47 @@ from dendropy.calculate import treecompare
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--true_tree')
-    parser.add_argument('--new_tree')
+    parser.add_argument('--t1')
+    parser.add_argument('--t2')
     return parser.parse_args()
+
+def prune_trees_to_match(t1, t2):
+    """requires two trees with a common taxon namespace"""
+    tree_1_taxa = set()
+    tree_2_taxa = set()
+
+    for tip in t1.leaf_node_iter():
+        tree_1_taxa.add(tip.taxon)
+
+    for tip in t2.leaf_node_iter():
+        tree_2_taxa.add(tip.taxon)
+
+    shared_taxa = tree_1_taxa.intersection(tree_2_taxa)
+
+    assert(len(shared_taxa) >= 1)
+    print("These two tree have {s} shared taxa".format(s=len(shared_taxa)))
+
+    t1.retain_taxa(shared_taxa)
+    t2.retain_taxa(shared_taxa)
+    return(t1, t2)
 
 def main():
     args = parse_args()
-
-    read_true = open(args.true_tree,'r').read()
-    read_new = open(args.new_tree,'r').read()
-
-    # establish common taxon namespace
     tns = dendropy.TaxonNamespace()
-
     # # ensure all trees loaded use common namespace
-    # true = dendropy.Tree.get(
-    #     data=read_true,
-    #     schema='newick',
-    #     taxon_namespace=tns, preserve_underscores=True)
-    # new = dendropy.Tree.get(
-    #     data=read_new,
-    #     schema='newick',
-    #     taxon_namespace=tns, preserve_underscores=True)
-    #
-    # print(treecompare.symmetric_difference(true, new))
+    t1 = dendropy.Tree.get_from_path(
+         src=args.t1,
+         schema='newick',
+         taxon_namespace=tns, preserve_underscores=True)
+    t2 = dendropy.Tree.get_from_path(
+         src=args.t2,
+         schema='newick',
+         taxon_namespace=tns, preserve_underscores=True)
 
-    true = dendropy.Tree.get(
-        data=read_true,
-        schema='newick',
-        preserve_underscores=True)
-    new = dendropy.Tree.get(
-        data=read_new,
-        schema='newick',
-        preserve_underscores=True)
-
-    print(len(true.taxon_namespace))
-    print(len(new.taxon_namespace))
-
-    tree_1_taxa = []
-    tree_2_taxa = []
-    taxa_to_prune = []
-
-    for taxon in true.leaf_node_iter():
-        # print(taxon.taxon)
-        tree_1_taxa.append(taxon.taxon)
-
-    for taxon in new.leaf_node_iter():
-        # print(taxon.taxon)
-        tree_2_taxa.append(taxon.taxon)
-
-    tree_1_size = len(tree_1_taxa)
-    tree_2_size = len(tree_2_taxa)
-
-    print(tree_1_size)
-    print(tree_2_size)
-
-    if tree_1_size > tree_2_size:
-        print('true bigger than new')
-        for tax in tree_1_taxa:
-            if tax not in tree_2_taxa:
-                taxa_to_prune.append(tax.label)
-
-        print(true.as_ascii_plot())
-        print(true)
-
-        true.prune_taxa_with_labels(taxa_to_prune)
-        print(true)
-
-        print(true.as_ascii_plot())
-
-    elif tree_2_size > tree_1_size:
-        print('new bigger than true')
-        for tax in tree_2_taxa:
-            if tax not in tree_1_taxa:
-                taxa_to_prune.append(tax.label)
-
-        print(new.as_ascii_plot())
-        print(new)
-
-        new.prune_taxa_with_labels(taxa_to_prune)
-        print(new)
-
-        print(new.as_ascii_plot())
-
-    # print(true)
-    #     true.attach_taxon_namespace(tns)
-    #
-    # print(treecompare.symmetric_difference(true, new))
+    t1, t2 = prune_trees_to_match(t1, t2)
+    print("Symmetric difference is {}".format(treecompare.symmetric_difference(t1, t2)))
 
 
-
-    ## Unweighted Robinson-Foulds distance
-    # print(treecompare.symmetric_difference(true, new))
 
 if __name__ == '__main__':
     main()
