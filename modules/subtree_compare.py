@@ -6,8 +6,10 @@ from dendropy.calculate import treecompare
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--t1')
-    parser.add_argument('--t2')
+    parser.add_argument('--t1', help='Phylogeny file in newick format')
+    parser.add_argument('--t2', help='Phylogeny file in newick format')
+    parser.add_argument('--br_l', default='unweighted', help='Toggle for weighted or unweighted RF distance. DEFAULT: unweighted')
+
     return parser.parse_args()
 
 def prune_trees_to_match(t1, t2):
@@ -44,7 +46,10 @@ def main():
          taxon_namespace=tns, preserve_underscores=True)
 
     t1, t2 = prune_trees_to_match(t1, t2)
-    print("Symmetric difference is {}".format(treecompare.symmetric_difference(t1, t2)))
+    if args.br_l == 'unweighted':
+        print("Unweighted symmetric difference is {}".format(treecompare.symmetric_difference(t1, t2)))
+    elif args.br_l == 'weighted':
+        print("Weighted symmetric difference is {}".format(treecompare.weighted_robinson_foulds_distance(t1, t2)))
 
 
 
