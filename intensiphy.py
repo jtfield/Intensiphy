@@ -63,7 +63,9 @@ def main():
     dir_existence = check_dir_exists(args.ep_out_dir)
 
     os.chdir(args.ep_out_dir)
+    print(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
+    print(absolute_output_dir_path)
     #
     # # download_accessions(args.organism, args.ep_out_dir)
     # print("Working out how to handle getting accession numbers.")
@@ -121,11 +123,11 @@ def main():
 
     if len(paired_batch_accessions) > 0:
         print("Processing paired-end read files.")
-        process_data = downloading_and_running(paired_batch_accessions, args.ep_out_dir, get_cores, "PAIRED")
+        process_data = downloading_and_running(paired_batch_accessions, absolute_output_dir_path, get_cores, "PAIRED")
 
     if len(single_batch_accessions) > 0:
         print("Processing single-end read files.")
-        process_data = downloading_and_running(single_batch_accessions, args.ep_out_dir, get_cores, "SINGLE")
+        process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE")
 
     # Make new alignment and perform placement into tree
     construct_align_and_place(absolute_output_dir_path)

@@ -178,10 +178,21 @@ def download_accessions(org_name, out_dir):
 
     output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
-    url = 'https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=sra&rettype=runinfo&term=' + org_name
+    accession_file = open(output_file, 'w')
 
-    dl_accessions = subprocess.Popen(['wget', '-O', output_file,  url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print(dl_accessions.communicate())
+    esearch_command = ['esearch', '-db', 'sra', '-query', org_name]
+    efetch_command = ['efetch', '-format', 'runinfo']
+
+    esearch_accessions = subprocess.Popen(esearch_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    efetch_accessions = subprocess.Popen(efetch_command, stdin=esearch_accessions.stdout, stdout=accession_file)
+    print(efetch_accessions.communicate())
+
+    # dl_accessions = subprocess.Popen(accession_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # dl_accessions = subprocess.Popen(['esearch', '-db', 'sra', '-query', org_name, '|', 'efetch', '-format', 'runinfo', '>', output_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # dl_accessions = subprocess.Popen(['wget', '-O', output_file,  url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # print(dl_accessions.communicate())
 
     os.chdir(out_dir)
 
@@ -519,8 +530,8 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             except FileNotFoundError:
                 print("EP output alignment not found. Moving dev files to logs directory.")
-                ep_log_file = outdir + '/intermediate_files/ep_output/ep_dev_log.txt'
-                new_log_name = outdir + '/run_log_files/ep_log_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+                ep_log_file = out_dir + '/intermediate_files/ep_output/ep_dev_log.txt'
+                new_log_name = out_dir + '/run_log_files/ep_log_' + now.strftime('%Y-%m-%d-%H-%M-%S')
                 shutil.copyfile(ep_log_file, new_log_name)
                 shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
@@ -536,11 +547,6 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
             print("batches not downloaded this run.")
             print(not_downloaded_this_run)
             print("###")
-
-                # TEMPORARY BREAK STATEMENT
-                # TODO: DONT FORGET TO REMOVE THIS!!!!
-                # TESTING PURPOSES ONLY
-                # break
 
 
 
