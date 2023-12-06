@@ -9,7 +9,6 @@ def parse_args():
     parser.add_argument('--t1', help='Phylogeny file in newick format')
     parser.add_argument('--t2', help='Phylogeny file in newick format')
     parser.add_argument('--br_l', default='unweighted', help='Toggle for weighted or unweighted RF distance. DEFAULT: unweighted')
-
     return parser.parse_args()
 
 def prune_trees_to_match(t1, t2):
