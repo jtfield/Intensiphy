@@ -68,11 +68,15 @@ We just constructed a sequence library using our original alignment and added 5 
 ### Required flags
 ```
 - (--align_file) alignment in fasta format,
+```
 
 #### Either
+```
 - (--organism) the name or taxon ID of the organism you wish to collect sequences for from the NCBI SRA (Example: Neisseria gonorrhoeae[Organism] or txid482),
+```
 
 #### Or
+```
 - (--accession_method) Dictates how collecting and inputting accession numbers will be handled. (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT:AUTO_DL),
 - (--accs_file) accession file. Used if you are using the [--accession_method USER_INPUT] flag to pass in a curated file of SRA numbers,
 ```
