@@ -41,7 +41,7 @@ We'll use the `ip_combo.fas` alignment file as our starting alignment. `ip_combo
 Now from the directory where you installed Intensiphy, run:
 
 ```bash
-./intensiphy.py -align_file ./testdata/combo.fas --accession_method USER_INPUT --accs_file ./testdata/sra.csv 
+./intensiphy.py --align_file ./testdata/combo.fas --accession_method USER_INPUT --accs_file ./testdata/sra.csv 
 ```
 This is a simple run, which downloads and assembles sequences found in the `sra.csv` file.
 * The `--align_file` flag provides the path to the existing alignment to update.

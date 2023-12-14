@@ -27,7 +27,7 @@ def parse_args():
         If an alignment is added using this option, samples will be added to this alignment.')
     parser.add_argument('--starting_tree', default=False, type=str, help='Path \
     to a newick tree file corresponding to an input alignment. Don\' use if not inputting an alignment.' )
-    parser.add_argument('--cores')
+    parser.add_argument('--cores', default=2, help='Number of cores youd like to allocate to Intensiphy')
     parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
     parser.add_argument('--accession_method', default="AUTO_DL", type=str, \
     help='Dictates how collecting and inputting accession numbers will be handled. \
