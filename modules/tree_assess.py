@@ -10,7 +10,7 @@ import datetime
 # from multiprocessing import Pool, freeze_support
 # import multiprocessing as mp
 
-def handle_starting_tree(outdir, threads, tree_var):
+def handle_starting_tree(outdir, threads, tree_var, placement_var):
     """Builds starting tree if a tree isnt added as input by user"""
 
     tree_storage = outdir + '/intermediate_files'
@@ -19,27 +19,35 @@ def handle_starting_tree(outdir, threads, tree_var):
     threads = str(int(threads[0]) * int(threads[1]))
 
 
-    if tree_var == False:
-        os.chdir(tree_storage)
+    if placement_var == 'ON':
+        print('Placement mode has been selected.')
+        print('Determining whether a tree file has been input.')
+        if tree_var == False:
+            print('No starting tree has been provided.')
+            print('Constructing a starting tree using the input starting alignment.')
+            os.chdir(tree_storage)
 
-        subprocess.run(['raxmlHPC-PTHREADS', '-m', 'GTRGAMMA', '-T', threads, '-s', align, '-p', '12345', '-n', 'starting_tree.tre'])
+            subprocess.run(['raxmlHPC-PTHREADS', '-m', 'GTRGAMMA', '-T', threads, '-s', align, '-p', '12345', '-n', 'starting_tree.tre'])
 
-        os.chdir(outdir)
+            os.chdir(outdir)
 
-    elif tree_var != False:
-        tree_file_exists = os.path.exists(tree_var)
-        if tree_file_exists:
+        elif tree_var != False:
+            print('A starting tree has been provided.')
+            print('Using the input starting tree for phylogenetic placement.')
+            tree_file_exists = os.path.exists(tree_var)
+            if tree_file_exists:
 
-            abs_tree_path = os.path.realpath(tree_var)
+                abs_tree_path = os.path.realpath(tree_var)
 
-            symlink_file = pathlib.Path(abs_tree_path)
+                symlink_file = pathlib.Path(abs_tree_path)
 
-            new_tree = tree_storage + '/RAxML_bestTree.starting_tree.tre'
-            new_tree = pathlib.Path(new_tree)
+                new_tree = tree_storage + '/RAxML_bestTree.starting_tree.tre'
+                new_tree = pathlib.Path(new_tree)
 
-            new_tree.symlink_to(symlink_file)
+                new_tree.symlink_to(symlink_file)
 
-
+    elif placement_var == 'OFF':
+        print('Placement mode has not been selected.')
 
 def construct_align_and_place(outdir):
     """Builds an alignment using all present sequences. \
