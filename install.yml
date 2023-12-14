@@ -1,0 +1,16 @@
+name: extensiphy_env
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3
+  - numpy
+  - pandas
+  - argparse
+  - bwa-mem2
+  - samtools
+  - seqtk
+  - bcftools
+  - fastx_toolkit
+  - dendropy
+  - raxml

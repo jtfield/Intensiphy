@@ -32,9 +32,9 @@ def parse_args():
     parser.add_argument('--accession_method', default="AUTO_DL", type=str, \
     help='Dictates how collecting and inputting accession numbers will be handled. \
         (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT: AUTO_DL)')
-    parser.add_argument('--ep_out_dir', default='ip_output', help='Absolute path and folder name to create for outputs')
+    parser.add_argument('--ip_out_dir', default='ip_output', help='Absolute path and folder name to create for outputs')
     # parser.add_argument('--path_to_ep_dir', help='Absolute path and folder name to create for outputs')
-    parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
+    parser.add_argument('--organism', type=str, nargs='+', default=False, help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
     parser.add_argument('--ref', default=False, type=str, help='reference sequence label (without suffix or file ending information). (Example: SRR1500345)')
     parser.add_argument('--placement', default='OFF', help='Flag controls whether to perform phylogenetic placement once sequence collection and assembly is complete. \
@@ -63,16 +63,16 @@ def main():
     # a repeating run.
     # Returns True if output dir exists already and False if output dir doesn't exist prior to execution.
     print("Checking if this is a new run or a continuing run.")
-    dir_existence = check_dir_exists(args.ep_out_dir)
+    dir_existence = check_dir_exists(args.ip_out_dir)
 
-    os.chdir(args.ep_out_dir)
-    print(args.ep_out_dir)
+    os.chdir(args.ip_out_dir)
+    print(args.ip_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
     print(absolute_output_dir_path)
 
     write_starting_align_names(absolute_output_dir_path, args.align_file)
     #
-    # # download_accessions(args.organism, args.ep_out_dir)
+    # # download_accessions(args.organism, args.ip_out_dir)
     # print("Working out how to handle getting accession numbers.")
     accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
 

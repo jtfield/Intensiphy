@@ -182,7 +182,12 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
     print("Processing accession input option.")
 
     if accession_option == "AUTO_DL":
-        download_accessions(organism, folder_path)
+        if not organism == False:
+            download_accessions(organism, folder_path)
+
+        elif organism == False:
+            print("A scientific name or NCBI taxon ID was not input.")
+            print("Please use the --organism flag to specify what organism to search for.")
 
     elif accession_option == "AUTO_PATHDB":
         print("option not available yet")

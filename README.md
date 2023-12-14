@@ -68,15 +68,20 @@ We just constructed a sequence library using our original alignment and added 5 
 ### Required flags
 ```
 - (--align_file) alignment in fasta format,
+
+#### Either
 - (--organism) the name or taxon ID of the organism you wish to collect sequences for from the NCBI SRA (Example: Neisseria gonorrhoeae[Organism] or txid482),
+
+#### Or
+- (--accession_method) Dictates how collecting and inputting accession numbers will be handled. (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT:AUTO_DL),
+- (--accs_file) accession file. Used if you are using the [--accession_method USER_INPUT] flag to pass in a curated file of SRA numbers,
 ```
 
 ### Optional flags
 ```
 - (--cores) number of cores allocated to Intensiphy for the alignment and assembly steps (DEFAULT: 2),
-- (--accession_method) Dictates how collecting and inputting accession numbers will be handled. (OPTIONS: USER_INPUT and AUTO_DL), (DEFAULT:AUTO_DL),
-- (--accs_file) accession file. Used if you are using the [--accession_method USER_INPUT] flag to pass in a curated file of SRA numbers,
-- (--ref) reference sequence label (without suffix or file ending information). (Example: SRR1500345)
+- (--ref) reference sequence label (without suffix or file ending information). (Example: SRR1500345) (DEFAULT: random selection)
+- (--placement) Toggles the phylogenetic placement function once all accession files have been downloaded and assembled. Toggles automatic phylogenetic estimation of starting tree if one was not input using the [--starting_tree] flag. (OPTIONS: ON, OFF) (DEFAULT: OFF)
 - (--starting_tree) a phylogeny produced from the input alignment file. Used for phylogenetic placement.
 - (--ip_out_dir) path and folder name you would like to use to store the outputs of this program (DEFAULT: ip_output).
 ```
