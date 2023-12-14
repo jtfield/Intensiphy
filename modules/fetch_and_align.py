@@ -68,6 +68,38 @@ def select_ref(ref_var, output_dir_path):
                         shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
 
 
+def write_starting_align_names(outdir, starting_align):
+    """
+    Writes the list of sequence names to the file current_run_starting_taxa.txt.
+
+    Args:
+        outdir (str): Path to the output directory for this IP run.
+        starting_align (str): Path to the starting alignment file.
+    """
+
+    names_list = []
+
+    file_name = 'current_run_starting_taxa.txt'
+    path_to_file = outdir + '/' + file_name
+
+    file_exists = os.path.isfile(path_to_file)
+    
+    if not file_exists:
+        open_record_file = open(path_to_file, 'w')
+
+        with open(starting_align) as align_file_contents:
+            for line in align_file_contents:
+                if line.startswith('>'):
+                    line = line.strip()
+                    name = line.strip('>')
+                    names_list.append(name)
+
+        for starting_name in names_list:
+            open_record_file.write(starting_name + '\n')
+
+        open_record_file.close()
+
+
 def write_current_run_names(outdir, list_of_names):
     """
     Takes in the list of names being added during the current run of IP.
@@ -513,15 +545,11 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             if pair_or_not_toggle == "PAIRED":
 
-                # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
                 subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-                # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
             elif pair_or_not_toggle == "SINGLE":
 
-                # print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output')
                 subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
-                # print(print("/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'))
 
             print("Extensiphy runs complete.")
             print("Cleaning up files for next batch.")
@@ -547,6 +575,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
             print("batches not downloaded this run.")
             print(not_downloaded_this_run)
             print("###")
+
 
 
 

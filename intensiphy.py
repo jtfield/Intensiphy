@@ -37,6 +37,9 @@ def parse_args():
     parser.add_argument('--organism', type=str, nargs='+', help='scientific name of the organism or group of organisms you \
         would like to query SRA for and update your alignment with. Example: Neisseria gonorrhoeae[Organism] or txid482')
     parser.add_argument('--ref', default=False, type=str, help='reference sequence label (without suffix or file ending information). (Example: SRR1500345)')
+    parser.add_argument('--placement', default='OFF', help='Flag controls whether to perform phylogenetic placement once sequence collection and assembly is complete. \
+                        Also controls whether a starting tree is built if one isnt input by the user. \
+                        (OPTIONS: ON and OFF) (DEFAULT: OFF)')
     # parser.add_argument('--sim', type=float, help='sequence similarity cutoff to exclude sequences from the alignment. \
         # When two sequences surpass this cutoff, one sequence will be chosen to represent both.')
     # parser.add_argument('--ds', type=int, help='Allocated disk space Intensiphy can use.')
@@ -66,6 +69,8 @@ def main():
     print(args.ep_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
     print(absolute_output_dir_path)
+
+    write_starting_align_names(absolute_output_dir_path, args.align_file)
     #
     # # download_accessions(args.organism, args.ep_out_dir)
     # print("Working out how to handle getting accession numbers.")
@@ -89,7 +94,7 @@ def main():
 
         select_ref(args.ref, absolute_output_dir_path)
 
-        handle_starting_tree(absolute_output_dir_path, get_cores, args.starting_tree)
+        handle_starting_tree(absolute_output_dir_path, get_cores, args.starting_tree, args.placement)
 
     else:
         print("Proceeding with new run using previous database.")
@@ -128,9 +133,14 @@ def main():
     if len(single_batch_accessions) > 0:
         print("Processing single-end read files.")
         process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE")
+    
+    print('')
 
-    # Make new alignment and perform placement into tree
-    construct_align_and_place(absolute_output_dir_path)
+    if args.placement == 'ON':
+        print("Placing new sequences into starting tree.")
+
+        # Make new alignment and perform placement into tree
+        construct_align_and_place(absolute_output_dir_path)
 
 
 
