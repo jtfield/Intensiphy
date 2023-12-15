@@ -52,8 +52,6 @@ def main():
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     ref_taxon = ""
 
-    # reset_tests()
-
     # calculate the core organization to pass to Extensiphy
     print("Assessing allocated cores.")
     get_cores = calulate_cores(args.cores)
@@ -70,11 +68,22 @@ def main():
     absolute_output_dir_path = os.path.abspath(os.getcwd())
     print(absolute_output_dir_path)
 
-    write_starting_align_names(absolute_output_dir_path, args.align_file)
+    if not args.align_file == False:
+        absolute_align_file_path = os.path.abspath(args.align_file)
+
+    if not args.accs_file == False:
+        absolute_accs_file_path = os.path.abspath(args.accs_file)
+
+    if not args.starting_tree == False:
+        absolute_tree_file_path = os.path.abspath(args.starting_tree)
+
+    write_starting_align_names(absolute_output_dir_path, absolute_align_file_path)
+
+    # write_starting_align_names(absolute_output_dir_path, args.align_file)
     #
     # # download_accessions(args.organism, args.ip_out_dir)
     # print("Working out how to handle getting accession numbers.")
-    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, args.accs_file)
+    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, absolute_accs_file_path)
 
     #read list of accessions
     read_accessions = ''
@@ -84,17 +93,16 @@ def main():
     elif args.accession_method == 'USER_INPUT':
         read_accessions = read_pathodb_csv_file(absolute_output_dir_path)
 
-
     print("Working out what kind of run we're doing.")
     if dir_existence == False:
 
-        make_align(dir_existence, absolute_output_dir_path, args.accs_file, args.align_file)
+        make_align(dir_existence, absolute_output_dir_path, absolute_accs_file_path, absolute_align_file_path)
 
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 
         select_ref(args.ref, absolute_output_dir_path)
 
-        handle_starting_tree(absolute_output_dir_path, get_cores, args.starting_tree, args.placement)
+        handle_starting_tree(absolute_output_dir_path, get_cores, absolute_tree_file_path, args.placement)
 
     else:
         print("Proceeding with new run using previous database.")
@@ -134,7 +142,7 @@ def main():
         print("Processing single-end read files.")
         process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE")
     
-    print('')
+    print('end of intensiphy')
 
     if args.placement == 'ON':
         print("Placing new sequences into starting tree.")
