@@ -27,7 +27,7 @@ def parse_args():
         If an alignment is added using this option, samples will be added to this alignment.')
     parser.add_argument('--starting_tree', default=False, type=str, help='Path \
     to a newick tree file corresponding to an input alignment. Don\' use if not inputting an alignment.' )
-    parser.add_argument('--cores', default=2, help='Number of cores youd like to allocate to Intensiphy')
+    parser.add_argument('--cores', default=2, nargs='?', const=2, type=int, help='Number of cores youd like to allocate to Intensiphy')
     parser.add_argument('--accs_file', default=False, help='Accession file if accession_method is set to USER_INPUT')
     parser.add_argument('--accession_method', default="AUTO_DL", type=str, \
     help='Dictates how collecting and inputting accession numbers will be handled. \
@@ -51,6 +51,21 @@ def main():
     args = parse_args()
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     ref_taxon = ""
+    # print(os.path.abspath(args.align_file))
+    absolute_align_file_path = False
+    if not args.align_file == False:
+        absolute_align_file_path = os.path.abspath(args.align_file)
+        # print(absolute_align_file_path)
+
+    absolute_accs_file_path = False
+    if not args.accs_file == False:
+        absolute_accs_file_path = os.path.abspath(args.accs_file)
+        # print(absolute_accs_file_path)
+
+    absolute_tree_file_path = False
+    if not args.starting_tree == False:
+        absolute_tree_file_path = os.path.abspath(args.starting_tree)
+        print(absolute_tree_file_path)
 
     # calculate the core organization to pass to Extensiphy
     print("Assessing allocated cores.")
@@ -64,18 +79,24 @@ def main():
     dir_existence = check_dir_exists(args.ip_out_dir)
 
     os.chdir(args.ip_out_dir)
-    print(args.ip_out_dir)
+    # print(args.ip_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
-    print(absolute_output_dir_path)
+    # print(absolute_output_dir_path)
 
-    if not args.align_file == False:
-        absolute_align_file_path = os.path.abspath(args.align_file)
+    # absolute_align_file_path = ''
+    # if not args.align_file == False:
+    #     absolute_align_file_path = os.path.abspath(args.align_file)
+    #     print(absolute_align_file_path)
 
-    if not args.accs_file == False:
-        absolute_accs_file_path = os.path.abspath(args.accs_file)
+    # absolute_accs_file_path = ''
+    # if not args.accs_file == False:
+    #     absolute_accs_file_path = os.path.abspath(args.accs_file)
+    #     print(absolute_accs_file_path)
 
-    if not args.starting_tree == False:
-        absolute_tree_file_path = os.path.abspath(args.starting_tree)
+    # absolute_tree_file_path = ''
+    # if not args.starting_tree == False:
+    #     absolute_tree_file_path = os.path.abspath(args.starting_tree)
+    #     print(absolute_tree_file_path)
 
     write_starting_align_names(absolute_output_dir_path, absolute_align_file_path)
 
