@@ -550,11 +550,23 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
             if pair_or_not_toggle == "PAIRED":
 
-                subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+                ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output']
+
+                run_ep = subprocess.Popen(ep_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                os.wait()
+
+                # subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
 
             elif pair_or_not_toggle == "SINGLE":
 
-                subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
+                ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output']
+
+                run_ep = subprocess.Popen(ep_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                os.wait()
+
+                # subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
 
             print("Extensiphy runs complete.")
             print("Cleaning up files for next batch.")
