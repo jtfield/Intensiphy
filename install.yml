@@ -14,3 +14,4 @@ dependencies:
   - fastx_toolkit
   - dendropy
   - raxml
+  - entrez-direct

@@ -366,7 +366,7 @@ def calulate_cores(set_cores):
     runs = 0
     cores_per_run = 0
 
-    if total_cores > 2 and total_cores < 10:
+    if total_cores >= 2 and total_cores < 10:
         runs = 2
         cores_per_run = total_cores / 2
 

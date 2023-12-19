@@ -51,16 +51,17 @@ def main():
     args = parse_args()
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     ref_taxon = ""
+    print(args.cores)
     # print(os.path.abspath(args.align_file))
     absolute_align_file_path = False
     if not args.align_file == False:
         absolute_align_file_path = os.path.abspath(args.align_file)
-        # print(absolute_align_file_path)
+        print(absolute_align_file_path)
 
     absolute_accs_file_path = False
     if not args.accs_file == False:
         absolute_accs_file_path = os.path.abspath(args.accs_file)
-        # print(absolute_accs_file_path)
+        print(absolute_accs_file_path)
 
     absolute_tree_file_path = False
     if not args.starting_tree == False:
@@ -86,17 +87,17 @@ def main():
     # absolute_align_file_path = ''
     # if not args.align_file == False:
     #     absolute_align_file_path = os.path.abspath(args.align_file)
-    #     print(absolute_align_file_path)
+    # print(absolute_align_file_path)
 
     # absolute_accs_file_path = ''
     # if not args.accs_file == False:
     #     absolute_accs_file_path = os.path.abspath(args.accs_file)
-    #     print(absolute_accs_file_path)
+    # print(absolute_accs_file_path)
 
     # absolute_tree_file_path = ''
     # if not args.starting_tree == False:
     #     absolute_tree_file_path = os.path.abspath(args.starting_tree)
-    #     print(absolute_tree_file_path)
+    # print(absolute_tree_file_path)
 
     write_starting_align_names(absolute_output_dir_path, absolute_align_file_path)
 
