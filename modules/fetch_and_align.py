@@ -177,7 +177,7 @@ def clean_incomplete_downloads(outdir):
 
 
 
-def handle_accession_options(accession_option, organism, folder_path, input_file):
+def handle_accession_options(accession_option, organism, folder_path, input_file, log_file):
     """Only for use when not automatically downloading SRA numbers"""
     print("Processing accession input option.")
 
@@ -193,11 +193,24 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
         print("option not available yet")
 
     elif accession_option == "USER_INPUT":
+        open_log_file = open(log_file, 'a')
+
         now = datetime.datetime.now()
 
         output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
-        subprocess.run(['cp', input_file, folder_path + "/accession_files/" + output_file])
+        cp_command = ['cp', input_file, folder_path + "/accession_files/" + output_file]
+
+        cp_run = subprocess.Popen(cp_command, stdout=open_log_file, stderr=open_log_file)
+
+        os.wait()
+
+        # errs = cp_run.stderr.read().decode()
+        # out = cp_run.stdout.read().decode()
+
+        # write_to_log(out, errs, log_file)
+
+        # subprocess.run(['cp', input_file, folder_path + "/accession_files/" + output_file])
 
 
 def download_accessions(org_name, out_dir):
@@ -222,7 +235,17 @@ def download_accessions(org_name, out_dir):
 
     esearch_accessions = subprocess.Popen(esearch_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     efetch_accessions = subprocess.Popen(efetch_command, stdin=esearch_accessions.stdout, stdout=accession_file)
-    print(efetch_accessions.communicate())
+
+    # search_errs = esearch_accessions.stderr.read().decode()
+    # search_out = esearch_accessions.stdout.read().decode()
+
+    # write_to_log(search_out, search_errs, log_file)
+
+    # fetch_errs = efetch_accessions.stderr.read().decode()
+    # fetch_out = efetch_accessions.stdout.read().decode()
+
+    # write_to_log(fetch_out, fetch_errs, log_file)
+    # print(efetch_accessions.communicate())
 
     # dl_accessions = subprocess.Popen(accession_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -322,7 +345,7 @@ def find_recent_date(folder_of_files):
         # data.append(created_time)
         list_of_files.append(data)
 
-    print(list_of_files)
+    print("list of files", list_of_files)
 
     df = pd.DataFrame(list_of_files, columns=['file_name', 'creation_date'])
     print(df)
@@ -521,11 +544,13 @@ def fasterq_dump_reads(out_dir_, single_accession_):
     return downloaded_or_not
 
 
-def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
+def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle, log_file):
     """Take batched accessions, download for each batch and run EP. Then split up the alignment and remove the original folder"""
     ref = out_dir +'/intermediate_files/reference.fas'
     ep_output_align = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
     now = datetime.datetime.now()
+    
+    open_log_file = open(log_file, 'a')
 
     for accession_batch in accessions:
         # print(accession_batch)
@@ -552,7 +577,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
                 ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output']
 
-                run_ep = subprocess.Popen(ep_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                run_ep = subprocess.Popen(ep_command, stdout=open_log_file, stderr=open_log_file)
 
                 os.wait()
 
@@ -562,7 +587,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle):
 
                 ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output']
 
-                run_ep = subprocess.Popen(ep_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                run_ep = subprocess.Popen(ep_command, stdout=open_log_file, stderr=open_log_file)
 
                 os.wait()
 
@@ -641,18 +666,18 @@ def check_downloaded_read_files(outdir_, read_format_toggle):
 
 
 
-def run_ep(base_dir_, align_, outdir_):
-    # print("current working directory: ", os.getcwd())
-    # print("current alignment ", current_alignment)
-    print("extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_)
-    # ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # print(ep_process.communicate())
-    subprocess.run(["extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_])
+# def run_ep(base_dir_, align_, outdir_):
+#     # print("current working directory: ", os.getcwd())
+#     # print("current alignment ", current_alignment)
+#     print("extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_)
+#     # ep_process = subprocess.Popen(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     # print(ep_process.communicate())
+#     subprocess.run(["extensiphy.sh", "-a", align_, "-d", base_dir_ + "/read_files", "-1", "_1.fastq", "-2", "_2.fastq", "-o", outdir_])
 
-    # print("current working directory: ", os.getcwd())
-    # print("current alignment ", current_alignment)
-    # # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
-    # print("Extensiphy run complete. BEGINNING PROCESSING")
+#     # print("current working directory: ", os.getcwd())
+#     # print("current alignment ", current_alignment)
+#     # # subprocess.run(["/home/vortacs/tmp_git_repos/extensiphy/extensiphy.sh", "-h"])
+#     # print("Extensiphy run complete. BEGINNING PROCESSING")
 
 def rm_read_files(read_dir):
     """Quick function to remove reads that have been used"""

@@ -51,22 +51,22 @@ def main():
     args = parse_args()
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     ref_taxon = ""
-    print(args.cores)
+    # print(args.cores)
     # print(os.path.abspath(args.align_file))
     absolute_align_file_path = False
     if not args.align_file == False:
         absolute_align_file_path = os.path.abspath(args.align_file)
-        print(absolute_align_file_path)
+        # print(absolute_align_file_path)
 
     absolute_accs_file_path = False
     if not args.accs_file == False:
         absolute_accs_file_path = os.path.abspath(args.accs_file)
-        print(absolute_accs_file_path)
+        # print(absolute_accs_file_path)
 
     absolute_tree_file_path = False
     if not args.starting_tree == False:
         absolute_tree_file_path = os.path.abspath(args.starting_tree)
-        print(absolute_tree_file_path)
+        # print(absolute_tree_file_path)
 
     # calculate the core organization to pass to Extensiphy
     print("Assessing allocated cores.")
@@ -82,6 +82,11 @@ def main():
     os.chdir(args.ip_out_dir)
     # print(args.ip_out_dir)
     absolute_output_dir_path = os.path.abspath(os.getcwd())
+
+    sub_log_file = absolute_output_dir_path + '/run_log_files/subprocess_command_logs.txt'
+
+    subprocess.run(["touch", sub_log_file])
+
     # print(absolute_output_dir_path)
 
     # absolute_align_file_path = ''
@@ -105,7 +110,7 @@ def main():
     #
     # # download_accessions(args.organism, args.ip_out_dir)
     # print("Working out how to handle getting accession numbers.")
-    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, absolute_accs_file_path)
+    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, absolute_accs_file_path, sub_log_file)
 
     #read list of accessions
     read_accessions = ''
@@ -158,11 +163,11 @@ def main():
 
     if len(paired_batch_accessions) > 0:
         print("Processing paired-end read files.")
-        process_data = downloading_and_running(paired_batch_accessions, absolute_output_dir_path, get_cores, "PAIRED")
+        process_data = downloading_and_running(paired_batch_accessions, absolute_output_dir_path, get_cores, "PAIRED", sub_log_file)
 
     if len(single_batch_accessions) > 0:
         print("Processing single-end read files.")
-        process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE")
+        process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE", sub_log_file)
     
     print('end of intensiphy')
 
