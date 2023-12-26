@@ -14,23 +14,32 @@ import re
 from modules.alignment_splitter import split_alignment
 
 
-def make_align(run_bool, output_dir_path, input_accessions, alignment_var):
-    """If this is the start of a run (no output folder existed prior to starting this run) \
-    used gon_phyling to build an alignment based on the first 6 available samples"""
-    print("Building a starting alignment.")
+def make_align(run_bool, output_dir_path, alignment_var):
+    """
+    Identify and relocate an alignment file for Intensiphy to use.
+
+    Args:
+        run_bool (bool): A boolean indicating whether this is a new run of Intensiphy.
+        output_dir_path (str): The path to the output directory.
+        alignment_var (str): The path to the input alignment file.
+
+    Returns:
+        None
+    """
+
+    # TODO: integreate gon_phyling to build an alignment if the user doesn't input one.
+    
     if alignment_var != False and run_bool == False:
         print("Input alignment detected.")
-        print("Skipping de novo alignment production.")
 
         abs_align_path = os.path.realpath(alignment_var)
-        #
+        
         symlink_file = pathlib.Path(abs_align_path)
 
         new_align = output_dir_path + '/intermediate_files/alignment.fas'
         new_align = pathlib.Path(new_align)
 
         new_align.symlink_to(symlink_file)
-
 
     elif alignment_var == False:
 
