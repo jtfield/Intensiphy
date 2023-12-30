@@ -5,7 +5,16 @@ import argparse
 import pathlib
 
 def split_alignment(align_file, output_dir):
-    """Splits an alignment file into individual sequence files."""
+    """Splits an alignment file into individual sequence files.
+
+    Args:
+        align_file (str): The path to the alignment file.
+        output_dir (str): The directory where the individual sequence files will be saved.
+
+    Returns:
+        None
+    """
+    
     print("Align splitter.")
 
     # Open and read alignment file

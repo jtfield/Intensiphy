@@ -70,7 +70,7 @@ def main():
 
     # calculate the core organization to pass to Extensiphy
     print("Assessing allocated cores.")
-    get_cores = calulate_cores(args.cores)
+    get_cores = calculate_cores(args.cores)
 
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit

@@ -390,7 +390,7 @@ def restructure_dates(file_name):
 
 
 
-def calulate_cores(set_cores):
+def calculate_cores(set_cores):
     """Organizes and calulates the cores for use with Extensiphy."""
     print("Calculating threads for Extensiphy.")
     output = []
@@ -418,7 +418,7 @@ def calulate_cores(set_cores):
     for num in output:
         assert type(num) == int
 
-    print(output)
+    # print(output)
     return output
 
 def check_duplicate_accesions(accession_db, fasta_names):
