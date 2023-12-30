@@ -19,16 +19,11 @@ pytest ./unit_tests.py
 Thats it. Once the tests are complete, you should hopefully see this output:
 
 ```
-test help menu: PASSED
-test simple alignment update: PASSED
-test update alignment with single-end reads: PASSED
-test alignment update and phylo build: PASSED
-test alignment update and phylo update: PASSED
-test alignment update and bootstrap phylo update: PASSED
-test alignment update and phylo update for specific reference: PASSED
-test build and update alignment from single locus files: PASSED
-test output single locus alignment files: PASSED
+unit_tests.py ...                                                                                                                        [100%]
+
+========================================================= 3 passed, 1 warning in 0.31s =========================================================
+
 ```
 
-If any of these tests have failed and show a `FAILED` result, there is a problem with Extensiphy  
-To get help with your installatio of Extensiphy, contact: jtoscanifield@ucmerced.edu
+If any of these tests have failed and show a `FAILED` result, there is a problem with Intensiphy  
+To get help with your installation of Intensiphy, contact: jtoscanifield@ucmerced.edu
