@@ -231,7 +231,7 @@ def download_accessions(org_name, out_dir):
     os.chdir(out_dir + "/accession_files")
 
     # ' '.join(org_name)
-    org_name = org_name[0].strip("'")
+    # org_name = org_name[0].strip("'")
 
     output_file = 'accessions_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
@@ -241,12 +241,8 @@ def download_accessions(org_name, out_dir):
     efetch_command = ['efetch', '-format', 'runinfo']
 
     esearch_accessions = subprocess.Popen(esearch_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    os.wait()
     
     efetch_accessions = subprocess.Popen(efetch_command, stdin=esearch_accessions.stdout, stdout=accession_file)
-
-    os.wait()
 
     # search_errs = esearch_accessions.stderr.read().decode()
     # search_out = esearch_accessions.stdout.read().decode()

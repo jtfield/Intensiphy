@@ -45,8 +45,10 @@ def test_download_accessions():
 
     faa.download_accessions(organism, test_output_dir)
 
+    os.wait()
+
     for ind_file in os.listdir('.'):
-        if re.match('accessions_', ind_file):
+        if re.match('accessions_.+', ind_file):
             accessions_count+=1
 
     assert accessions_count == 1
