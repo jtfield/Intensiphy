@@ -225,8 +225,6 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
 def download_accessions(org_name, out_dir):
     """Download the run info file that includes run ID accession numbers and info on how the sequences were produced."""
     print("Downloading accession number CSV file.")
-    # Test!
-    # tests.accessions_tests.accession_download_test.test_download_accessions()
 
     now = datetime.datetime.now()
 
@@ -243,7 +241,12 @@ def download_accessions(org_name, out_dir):
     efetch_command = ['efetch', '-format', 'runinfo']
 
     esearch_accessions = subprocess.Popen(esearch_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    os.wait()
+    
     efetch_accessions = subprocess.Popen(efetch_command, stdin=esearch_accessions.stdout, stdout=accession_file)
+
+    os.wait()
 
     # search_errs = esearch_accessions.stderr.read().decode()
     # search_out = esearch_accessions.stdout.read().decode()

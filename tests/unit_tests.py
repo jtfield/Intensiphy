@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 sys.path.insert(0, os.path.abspath(".."))
 # from modules.fetch_and_align import (make_align, calculate_cores)
 # from modules.fetch_and_align import *
@@ -35,17 +36,22 @@ def test_calculate_cores():
     assert core_values_two[1] == 2
 
 
-def test_write_starting_align_names():
+def test_download_accessions():
 
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+    organism = 'txid413501'
+    accessions_count = 0
 
-    test_align = split_path_and_name[0] + '/combo.fas'
+    faa.download_accessions(organism, test_output_dir)
 
-    faa.write_starting_align_names(test_output_dir, test_align)
+    for ind_file in os.listdir('.'):
+        if re.match('accessions_', ind_file):
+            accessions_count+=1
 
-    assert os.path.isfile(test_output_dir + '/current_run_starting_taxa.txt')
+    assert accessions_count == 1
 
+# TODO: make handle_accessions test
 
 def test_make_align():
 
