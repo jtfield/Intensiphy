@@ -76,7 +76,6 @@ def test_download_accessions():
 
     os.chdir(test_output_dir)
 
-# TODO: make handle_accessions test
 
 def test_make_align():
 
@@ -114,23 +113,32 @@ def test_split_alignment():
                 detected_fasta+=1
         assert detected_fasta == 1
 
-        
-
-
-
-
-
-
 
 # #TODO: Make selected_ref_test and unselected_ref_test
-#     def unselected_ref_test():
+def test_unselected_ref():
 
-#         split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
-#         test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
 
-#         test_align = split_path_and_name[0] + '/combo.fas'
+    test_align = split_path_and_name[0] + '/combo.fas'
 
-#         faa.select_ref(False, test_output_dir)
+    faa.select_ref(False, test_output_dir)
 
-#         assert os.path.isfile(test_output_dir + '/intermediate_files/reference.fas')
+    assert os.path.isfile(test_output_dir + '/intermediate_files/reference.fas')
 
+def test_selected_ref():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    test_align = split_path_and_name[0] + '/combo.fas'
+
+    selected_ref_align = test_output_dir + '/intermediate_files/reference.fas'
+
+    ref_name = 'SRR7367521.ref'
+
+    faa.select_ref(ref_name, test_output_dir)
+
+    open_ref_file = open(selected_ref_align, 'r').readline()
+
+    assert re.match('>' + ref_name, open_ref_file)
