@@ -41,6 +41,21 @@ def test_handle_accessions():
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
     test_accessions_file = split_path_and_name[0] + '/test_accessions'
+    log_file_name = test_output_dir + '/run_log_files/subprocess_command_logs.txt'
+    accessions_count = 0
+
+    faa.handle_accession_options('USER_INPUT', False, test_output_dir, test_accessions_file, log_file_name)
+
+    os.chdir(test_output_dir + '/accession_files')
+
+    for ind_file in os.listdir('.'):
+        if re.match('accessions_.+', ind_file):
+            accessions_count+=1
+
+    assert accessions_count >=1
+
+    os.chdir(test_output_dir)
+
 
 def test_download_accessions():
 
@@ -52,8 +67,6 @@ def test_download_accessions():
     faa.download_accessions(organism, test_output_dir)
 
     os.chdir(test_output_dir + '/accession_files')
-
-    os.wait()
 
     for ind_file in os.listdir('.'):
         if re.match('accessions_.+', ind_file):
@@ -79,14 +92,34 @@ def test_make_align():
     assert os.path.islink(symlink_path)
 
 
-# def alignment_splitter_test():
+def test_split_alignment():
 
-#     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
-#     test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+    seq_storage = test_output_dir + '/sequence_storage'
 
-#     test_align = split_path_and_name[0] + '/combo.fas'
+    test_align = split_path_and_name[0] + '/combo.fas'
 
-#     asp.split_alignment(test_align, test_output_dir)
+    asp.split_alignment(test_align, seq_storage)
+
+    sep_seq_dirs = os.listdir(seq_storage)
+
+    for seq_dir in sep_seq_dirs:
+        # print(seq_dir)
+        detected_fasta = 0
+        os.chdir(seq_storage + '/' + seq_dir)
+        seq_dir_files = os.listdir('.')
+        for seq_file in seq_dir_files:
+            if seq_file.endswith('_.fas'):
+                detected_fasta+=1
+        assert detected_fasta == 1
+
+        
+
+
+
+
+
 
 
 # #TODO: Make selected_ref_test and unselected_ref_test

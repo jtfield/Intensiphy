@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 
 def main():
 
@@ -24,8 +25,13 @@ def main():
         list_of_files = os.listdir('.')
         if len(list_of_files) != 0:
             for file in list_of_files:
-                os.remove(file)
-                print('removed ', file)
+                try:
+
+                    os.remove(file)
+                    print('removed ', file)
+                except IsADirectoryError:
+                    shutil.rmtree(os.path.abspath(file))
+                    print('removed dir', file)
         os.chdir('..')
     
 
