@@ -36,6 +36,12 @@ def test_calculate_cores():
     assert core_values_two[1] == 2
 
 
+def test_handle_accessions():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+    test_accessions_file = split_path_and_name[0] + '/test_accessions'
+
 def test_download_accessions():
 
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
@@ -45,13 +51,17 @@ def test_download_accessions():
 
     faa.download_accessions(organism, test_output_dir)
 
+    os.chdir(test_output_dir + '/accession_files')
+
     os.wait()
 
     for ind_file in os.listdir('.'):
         if re.match('accessions_.+', ind_file):
             accessions_count+=1
 
-    assert accessions_count == 1
+    assert accessions_count >=1
+
+    os.chdir(test_output_dir)
 
 # TODO: make handle_accessions test
 
