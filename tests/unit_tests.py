@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # from modules.fetch_and_align import *
 import modules.fetch_and_align as faa
 import modules.alignment_splitter as asp
+import modules.tree_assess as ta
 
 def test_calculate_cores():
 
@@ -114,7 +115,6 @@ def test_split_alignment():
         assert detected_fasta == 1
 
 
-# #TODO: Make selected_ref_test and unselected_ref_test
 def test_unselected_ref():
 
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
@@ -142,3 +142,18 @@ def test_selected_ref():
     open_ref_file = open(selected_ref_align, 'r').readline()
 
     assert re.match('>' + ref_name, open_ref_file)
+
+def test_handle_no_starting_tree():
+
+    threads_ = [2,2]
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    ta.handle_starting_tree(test_output_dir, threads_, False, 'ON')
+
+    assert os.path.isfile(test_output_dir + '/intermediate_files/RAxML_bestTree.starting_tree.tre')
+
+def test_handle_present_starting_tree():
+
+    print('temp')
