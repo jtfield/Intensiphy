@@ -156,4 +156,18 @@ def test_handle_no_starting_tree():
 
 def test_handle_present_starting_tree():
 
-    print('temp')
+    threads_ = [2,2]
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    test_tree = split_path_and_name[0] + '/best_test_tree.tre'
+
+    tree_symlink_path = test_output_dir + '/intermediate_files/RAxML_bestTree.starting_tree.tre'
+
+    if os.path.isfile(tree_symlink_path):
+        os.remove(tree_symlink_path)
+
+    ta.handle_starting_tree(test_output_dir, threads_, test_tree, 'ON')
+
+    assert os.path.islink(tree_symlink_path)
