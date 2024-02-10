@@ -246,3 +246,18 @@ def test_write_current_runs_names():
     faa.write_current_run_names(test_output_dir, test_list_of_ids)
 
     assert os.path.isfile(test_output_dir + '/current_run_taxa_added.txt')
+
+def test_fasterq_dump_reads():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    test_accession = 'SRR27717694'
+
+    faa.fasterq_dump_reads(test_output_dir, test_accession)
+
+    os.wait()
+
+    assert os.path.isfile(test_output_dir + '/read_files/SRR27717694.fastq')
+
+    os.remove(test_output_dir + '/read_files/SRR27717694.fastq')
