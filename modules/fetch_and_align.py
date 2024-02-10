@@ -137,8 +137,10 @@ def write_current_run_names(outdir, list_of_names):
 
     for sub_list in list_of_names:
 
+        open_record_file.write("\n")
+        
         for name in sub_list:
-            open_record_file.write("\n")
+            # open_record_file.write("\n")
             open_record_file.write(name)
 
     open_record_file.close()

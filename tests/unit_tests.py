@@ -235,3 +235,14 @@ def test_prepare_batch_accessions():
     
     for list_chunk in processed_id_list:
         assert len(list_chunk) == 2
+
+def test_write_current_runs_names():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    test_list_of_ids = ['SRR01', 'SRR02', 'SRR03', 'SRR04', 'SRR05', 'SRR06', 'SRR07', 'SRR08', 'SRR09', 'SRR10']
+
+    faa.write_current_run_names(test_output_dir, test_list_of_ids)
+
+    assert os.path.isfile(test_output_dir + '/current_run_taxa_added.txt')
