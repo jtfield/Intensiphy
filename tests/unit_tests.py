@@ -222,3 +222,16 @@ def test_check_duplicate_accessions():
 
     for seq_name in test_current_seqs:
         assert seq_name not in test_filtered_accessions
+
+def test_prepare_batch_accessions():
+
+    threads = 2
+
+    test_list_of_ids = ['SRR01', 'SRR02', 'SRR03', 'SRR04', 'SRR05', 'SRR06', 'SRR07', 'SRR08', 'SRR09', 'SRR10']
+
+    processed_id_list = faa.prepare_batch_accessions(test_list_of_ids, threads)
+
+    assert len(processed_id_list) == 5
+    
+    for list_chunk in processed_id_list:
+        assert len(list_chunk) == 2
