@@ -171,3 +171,24 @@ def test_handle_present_starting_tree():
     ta.handle_starting_tree(test_output_dir, threads_, test_tree, 'ON')
 
     assert os.path.islink(tree_symlink_path)
+
+def test_clean_incomplete_downloads():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    read_dir = test_output_dir + '/read_files'
+
+    test_dir_names = ['SRRFAKE1', 'SRRFAKE2']
+    for dir_name in test_dir_names:
+        os.mkdir(read_dir + '/' + dir_name)
+    
+    files_list = os.listdir(read_dir)
+
+    assert len(files_list) != 0
+
+    faa.clean_incomplete_downloads(test_output_dir)
+
+    second_files_list = os.listdir(read_dir)
+
+    assert len(second_files_list) == 0
