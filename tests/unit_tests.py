@@ -192,3 +192,33 @@ def test_clean_incomplete_downloads():
     second_files_list = os.listdir(read_dir)
 
     assert len(second_files_list) == 0
+
+def test_read_fasta_names():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    seq_dir_names = ['SRR15276367', 'SRR18324696', 'SRR26630346', 'SRR7367521.ref', 'SRR7439215']
+
+    func_output = faa.read_fasta_names(test_output_dir)
+
+    for seq_name in func_output:
+        assert seq_name in seq_dir_names
+
+def test_check_duplicate_accessions():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    test_accessions_file = split_path_and_name[0] + '/test_accessions'
+
+    test_current_seqs = ['SRR15276367', 'SRR18324696', 'SRR26630346', 'SRR7367521.ref', 'SRR7439215']
+
+    faa.handle_accession_options("USER_INPUT", False, test_output_dir, test_accessions_file, "test_log.txt")
+
+    test_accessions_db = faa.read_pathodb_csv_file(test_output_dir)
+
+    test_filtered_accessions = faa.check_duplicate_accesions(test_accessions_db, test_current_seqs)
+
+    for seq_name in test_current_seqs:
+        assert seq_name not in test_filtered_accessions
