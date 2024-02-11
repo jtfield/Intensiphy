@@ -9,6 +9,16 @@ sys.path.insert(0, os.path.abspath(".."))
 import modules.fetch_and_align as faa
 import modules.alignment_splitter as asp
 import modules.tree_assess as ta
+import intensiphy as ip
+
+def test_check_dir_exists():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    ip.check_dir_exists(test_output_dir)
+
+    assert os.path.isdir(test_output_dir)
 
 def test_calculate_cores():
 
