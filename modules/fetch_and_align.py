@@ -138,7 +138,7 @@ def write_current_run_names(outdir, list_of_names):
     for sub_list in list_of_names:
 
         open_record_file.write("\n")
-        
+
         for name in sub_list:
             # open_record_file.write("\n")
             open_record_file.write(name)
@@ -577,6 +577,9 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle, log_
             if download_status != "DOWNLOADED":
 
                 not_downloaded_this_run.append(accession)
+            
+            # TODO: add renaming for single end read files here to accomodate extensiphy settings
+            # TODO: or rework extensiphy single end read file processing
 
         if len(not_downloaded_this_run) <= (len_of_this_batch / 2):
             print("Batch contains at least some accessions that were downloaded.")

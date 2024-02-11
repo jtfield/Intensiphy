@@ -252,6 +252,7 @@ def test_fasterq_dump_reads():
     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
     test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
 
+    # The complete mitochondrial genome of the pulmonate snail Melampus sincaporensis
     test_accession = 'SRR27717694'
 
     faa.fasterq_dump_reads(test_output_dir, test_accession)
@@ -261,3 +262,60 @@ def test_fasterq_dump_reads():
     assert os.path.isfile(test_output_dir + '/read_files/SRR27717694.fastq')
 
     os.remove(test_output_dir + '/read_files/SRR27717694.fastq')
+
+def test_paired_downloading_and_running():
+
+    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+    test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+    # backup sra ['SRR27561314']
+    paired_test_accessions = [['SRR27843890']]
+    paired_accession_single_list = ['SRR27843890']
+
+    threads = [2, 2]
+
+    log_file = test_output_dir + '/run_log_files/subprocess_command_logs.txt'
+
+    seq_storage = test_output_dir + '/sequence_storage'
+
+    faa.downloading_and_running(paired_test_accessions, test_output_dir, threads, 'PAIRED', log_file)
+
+    sep_seq_dirs = os.listdir(seq_storage)
+
+    detected_fasta = 0
+    for seq_dir in paired_accession_single_list:
+        os.chdir(seq_storage + '/' + seq_dir)
+        seq_dir_files = os.listdir('.')
+        for seq_file in seq_dir_files:
+            if seq_file.endswith('_.fas'):
+                detected_fasta+=1
+        assert detected_fasta == 1
+
+# Uncomment when single end read handling dev is finished
+# def test_single_downloading_and_running():
+
+#     split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
+#     test_output_dir = split_path_and_name[0] + '/test_ip_output_dir'
+
+#     single_test_accessions = [['SRR11140581']]
+#     single_accession_single_list = ['SRR11140581']
+
+#     threads = [2, 2]
+
+#     log_file = test_output_dir + '/run_log_files/subprocess_command_logs.txt'
+
+#     seq_storage = test_output_dir + '/sequence_storage'
+
+#     faa.downloading_and_running(single_test_accessions, test_output_dir, threads, 'SINGLE', log_file)
+
+#     sep_seq_dirs = os.listdir(seq_storage)
+
+#     detected_fasta = 0
+
+#     for seq_dir in single_accession_single_list:
+#         os.chdir(seq_storage + '/' + seq_dir)
+#         seq_dir_files = os.listdir('.')
+#         for seq_file in seq_dir_files:
+#             if seq_file.endswith('_.fas'):
+#                 detected_fasta+=1
+#         assert detected_fasta == 1
