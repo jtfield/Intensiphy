@@ -598,6 +598,7 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle, log_
 
             elif pair_or_not_toggle == "SINGLE":
 
+                # TODO: understand if we're getting seg faults running extensiphy for single end reads.
                 ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-e", "SE", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-o", out_dir + '/intermediate_files/ep_output']
 
                 run_ep = subprocess.Popen(ep_command, stdout=open_log_file, stderr=open_log_file)
