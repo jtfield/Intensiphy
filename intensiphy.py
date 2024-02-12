@@ -123,7 +123,7 @@ def main():
     print("Working out what kind of run we're doing.")
     if dir_existence == False:
 
-        make_align(dir_existence, absolute_output_dir_path, absolute_accs_file_path, absolute_align_file_path)
+        make_align(dir_existence, absolute_output_dir_path, absolute_align_file_path)
 
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 

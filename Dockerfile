@@ -66,3 +66,5 @@ ENV PATH "$PATH:/project/extensiphy"
 
 WORKDIR /project/Intensiphy
 
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
