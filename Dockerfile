@@ -51,16 +51,18 @@ RUN wget https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.0pre2/bwa-mem
 #RUN tar -xjf bwa-mem2-2.0pre2_x64-linux.tar.bz2
 #RUN cp ./bwa-mem2-2.0pre2_x64-linux/bwa-mem2* /usr/local/bin/
 
-RUN wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.10/sratoolkit.3.0.10-ubuntu64.tar.gz \
-&& tar -xvzf sratoolkit.3.0.10-ubuntu64.tar.gz \
-&& cp ./sratoolkit.3.0.10-ubuntu64/bin/* /usr/loca/bin \
-&& rm -rf sratoolkit.3.0.10-ubuntu64.tar.gz sratoolkit.3.0.10-ubuntu64
+RUN wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.10/sratoolkit.3.0.10-ubuntu64.tar.gz
+RUN tar -xvzf sratoolkit.3.0.10-ubuntu64.tar.gz
+RUN cp -r ./sratoolkit.3.0.10-ubuntu64/bin/* /usr/local/bin
+RUN rm -rf sratoolkit.3.0.10-ubuntu64.tar.gz sratoolkit.3.0.10-ubuntu64
 
 # install Extensiphy
 RUN git clone https://github.com/McTavishLab/extensiphy.git
 
 # install Intensiphy
 RUN git clone https://github.com/jtfield/Intensiphy.git
+
+ENV PATH "$PATH:/project/extensiphy"
 
 WORKDIR /project/Intensiphy
 
