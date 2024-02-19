@@ -13,7 +13,7 @@ import subprocess
 # sys.path.append('./modules')
 # import modules.seq_similarity_assessment
 # import modules.alignment_splitter
-from modules.seq_similarity_assessment import *
+# from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 from modules.fetch_and_align import *
 from modules.tree_assess import *
