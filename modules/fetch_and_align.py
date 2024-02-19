@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-# import argparse
 import pathlib
 import shutil
 from numpy.lib.shape_base import split
@@ -9,12 +8,12 @@ import numpy as np
 import pandas as pd
 import subprocess
 import datetime
-# import dateutil
 import re
 from modules.alignment_splitter import split_alignment
+from typing import List, Optional, Union
 
 
-def make_align(run_bool, output_dir_path, alignment_var):
+def make_align(run_bool: bool, output_dir_path: str, alignment_var: Optional[str]) -> None:
     """
     Identify and create a symlink to the input alignment file for Intensiphy to use.
 
@@ -53,7 +52,7 @@ def make_align(run_bool, output_dir_path, alignment_var):
 
 
 
-def select_ref(ref_var, output_dir_path):
+def select_ref(ref_var: Union[str, bool], output_dir_path: str) -> None:
     """
     Handles the selection of a reference sequence.
 
@@ -106,7 +105,7 @@ def select_ref(ref_var, output_dir_path):
                         shutil.copy(ref_dir_path + '/' + file, output_dir_path + '/intermediate_files/reference.fas')
 
 
-def write_starting_align_names(outdir, starting_align):
+def write_starting_align_names(outdir: str, starting_align: str) -> None:
     """
     Writes the list of sequence names to the file current_run_starting_taxa.txt.
 
@@ -156,7 +155,7 @@ def write_starting_align_names(outdir, starting_align):
         open_record_file.close()
 
 
-def write_current_run_names(outdir, list_of_names):
+def write_current_run_names(outdir: str, list_of_names: List[str]) -> None:
     """
     Records the names of taxa added during the current run of IP.
 
@@ -216,7 +215,7 @@ def write_current_run_names(outdir, list_of_names):
 
 
 
-def clean_incomplete_downloads(outdir):
+def clean_incomplete_downloads(outdir: str) -> None:
     """
     Cleans up the read_files directory by removing any incomplete downloads.
 
@@ -257,7 +256,7 @@ def clean_incomplete_downloads(outdir):
 
 
 
-def handle_accession_options(accession_option, organism, folder_path, input_file, log_file):
+def handle_accession_options(accession_option: str, organism: Union[str, bool], folder_path: str, input_file: str, log_file: str) -> None:
     """
     Handles the different options for accession input.
 
@@ -320,7 +319,7 @@ def handle_accession_options(accession_option, organism, folder_path, input_file
         os.wait()
 
 
-def download_accessions(org_name, out_dir):
+def download_accessions(org_name: str, out_dir: str) -> None:
     """
     Downloads accession numbers for a specified organism from the SRA database.
 
@@ -363,7 +362,7 @@ def download_accessions(org_name, out_dir):
     efetch_accessions = subprocess.Popen(efetch_command, stdin=esearch_accessions.stdout, stdout=accession_file)
 
 
-def read_csv_file(out_dir):
+def read_csv_file(out_dir: str) -> None:
     """
     Reads a CSV file of accession numbers and filters it based on certain criteria.
 
@@ -413,7 +412,7 @@ def read_csv_file(out_dir):
     os.chdir(out_dir)
 
 
-def read_pathodb_csv_file(out_dir):
+def read_pathodb_csv_file(out_dir: str) -> None:
     """
     Reads a CSV file of accession numbers from Pathogen DB and filters it based on certain criteria.
 
@@ -456,7 +455,7 @@ def read_pathodb_csv_file(out_dir):
     return csv
 
 
-def find_recent_date(folder_of_files):
+def find_recent_date(folder_of_files: str) -> pd.DataFrame:
     """
     Finds the file with the most recent date in a specified folder.
 
@@ -516,7 +515,7 @@ def find_recent_date(folder_of_files):
     return folder_of_files + '/' + current_accession_file
 
 
-def restructure_dates(file_name):
+def restructure_dates(file_name: str) -> int:
     """
     Restructures the date from a file name.
 
@@ -553,7 +552,7 @@ def restructure_dates(file_name):
     return condensed_date
 
 
-def calculate_cores(set_cores):
+def calculate_cores(set_cores: int) -> List[int]:
     """
     Calculates the number of runs and cores per run based on the total number of cores.
 
@@ -610,7 +609,7 @@ def calculate_cores(set_cores):
     # Return the output list
     return output
 
-def check_duplicate_accesions(accession_db, fasta_names):
+def check_duplicate_accesions(accession_db: pd.DataFrame, fasta_names: List[str]) -> List[str]:
     """
     Checks for duplicate accession numbers in the alignment.
 
@@ -652,7 +651,7 @@ def check_duplicate_accesions(accession_db, fasta_names):
     return sras_to_keep
 
 
-def prepare_batch_accessions(accessions, runs):
+def prepare_batch_accessions(accessions: List[str], runs: int) -> List[List[str]]:
     """
     Prepares batches of accession numbers for downloading.
 
@@ -677,8 +676,7 @@ def prepare_batch_accessions(accessions, runs):
     # Return the list of chunks
     return chunks
 
-
-def read_fasta_names(_outdir):
+def read_fasta_names(_outdir: str) -> List[str]:
     """
     Reads the names of individual sequence files from the sequence_storage directory.
 
@@ -692,21 +690,28 @@ def read_fasta_names(_outdir):
         list: A list of file names from the sequence_storage directory.
     """
 
+    # Print a message indicating that the function is getting taxa labels from the current alignment file
     print("Getting taxa labels from the current alignment file.")
-    names = []
 
-    sep_file_path = _outdir + '/sequence_storage'
+    # Initialize an empty list to store the file names
+    names: List[str] = []
 
-    individual_seq_folders = os.listdir(sep_file_path)
+    # Construct the path to the sequence_storage directory
+    sep_file_path: str = _outdir + '/sequence_storage'
 
+    # Get a list of all files in the sequence_storage directory
+    individual_seq_folders: List[str] = os.listdir(sep_file_path)
+
+    # For each file in the sequence_storage directory
     for name in individual_seq_folders:
+        # Append the file name to the list of names
         names.append(name)
-        print(name)
 
+    # Return the list of file names
     return names
 
 
-def align_rename_and_move(align, outdir):
+def align_rename_and_move(align: str, outdir: str) -> str:
     """
     Moves and renames the alignment file to correspond to its construction time.
 
@@ -723,25 +728,29 @@ def align_rename_and_move(align, outdir):
         str: The path to the new symlink in the output directory.
     """
 
-    print("Moving and renaming alignment to currespond to its construction time.")
+    # Print a message indicating that the function is moving and renaming the alignment
+    print("Moving and renaming alignment to correspond to its construction time.")
 
-    now = datetime.datetime.now()
+    # Get the current date and time
+    now: datetime.datetime = datetime.datetime.now()
 
-    # Symlink the alignment file into the alignments folder
-    abs_align_path = os.path.realpath(align)
+    # Get the absolute path of the alignment file
+    abs_align_path: str = os.path.realpath(align)
 
-    new_align_name = outdir + '/msa_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+    # Construct the new name for the alignment file, including the current date and time
+    new_align_name: str = outdir + '/msa_' + now.strftime('%Y-%m-%d-%H-%M-%S')
 
-    new_align_path = pathlib.Path(new_align_name)
-    print(abs_align_path)
-    print(new_align_path)
+    # Create a Path object for the new alignment file
+    new_align_path: pathlib.Path = pathlib.Path(new_align_name)
 
+    # Copy the alignment file to the new location and rename it
     shutil.copy(abs_align_path, new_align_name)
 
+    # Return the path to the new alignment file
     return new_align_name
 
 
-def fasterq_dump_reads(out_dir_, single_accession_):
+def fasterq_dump_reads(out_dir_: str, single_accession_: str) -> None:
     """
     Downloads reads for a single accession number using the fasterq-dump utility.
 
@@ -759,34 +768,46 @@ def fasterq_dump_reads(out_dir_, single_accession_):
         None
     """
 
+    # Change the current working directory to the read_files directory within the output directory
     os.chdir(out_dir_ + "/read_files")
 
-    downloaded_or_not = 'UNUSED'
+    # Initialize a variable to track whether the download was successful
+    downloaded_or_not: str = 'UNUSED'
+    # Print the initial value of the variable
     print(downloaded_or_not)
 
+    # Use the fasterq-dump utility to download reads for the specified accession number
     reads_dl = subprocess.Popen(["fasterq-dump", "--split-files", single_accession_], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # print(reads_dl.communicate())
-    errs = reads_dl.stderr.read().decode()
-    out = reads_dl.stdout.read().decode()
+    # Read the standard error and standard output from the fasterq-dump utility
+    errs: str = reads_dl.stderr.read().decode()
+    out: str = reads_dl.stdout.read().decode()
 
+    # If an error occurred during the download
     if "err" in errs or "err" in out:
+        # Print a message indicating that the download was not successful
         print("not downloaded")
+        # Print the standard output and standard error from the fasterq-dump utility
         print(out)
         print(errs)
+        # Set the variable to the accession number
         downloaded_or_not = single_accession_
 
+    # If the download was successful
     else:
+        # Print a message indicating that the download was successful
         print("downloaded")
-
+        # Set the variable to "DOWNLOADED"
         downloaded_or_not = "DOWNLOADED"
 
+    # Print the final value of the variable
     print(downloaded_or_not)
     os.chdir(out_dir_)
 
+    # return the accessions that were not downloaded or the str "DOWNLOADED"
     return downloaded_or_not
 
 
-def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle, log_file):
+def downloading_and_running(accessions: List[List[str]], out_dir: str, cores: int, pair_or_not_toggle: bool, log_file: str) -> None:
     """
     Downloads and aligns reads for a batch of accession numbers.
 
@@ -878,7 +899,6 @@ def downloading_and_running(accessions, out_dir, cores, pair_or_not_toggle, log_
             print(accession_batch)
             print("batches not downloaded this run.")
             print(not_downloaded_this_run)
-            print("###")
 
 
 
