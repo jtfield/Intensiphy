@@ -3,6 +3,7 @@
 import os
 import argparse
 import subprocess
+from typing import List
 from modules.alignment_splitter import split_alignment
 from modules.fetch_and_align import *
 from modules.tree_assess import *
@@ -34,30 +35,51 @@ def parse_args():
         # of fastq files instead of continuous downloading.')
     return parser.parse_args()
 
-def main():
-    args = parse_args()
-    split_path_and_name = os.path.realpath(__file__).rsplit('/',1)
-    ref_taxon = ""
-    # print(args.cores)
-    # print(os.path.abspath(args.align_file))
-    absolute_align_file_path = False
+def main() -> None:
+    """
+    The main function of the script.
+
+    This function parses command-line arguments, calculates the core organization to pass to Extensiphy, 
+    checks if the output directory has been made already from a previous run, and handles accession options.
+
+    Returns:
+        None
+    """
+
+    # Parse command-line arguments
+    args: argparse.Namespace = parse_args()
+
+    # Split the absolute path of the script into the directory and the filename
+    split_path_and_name: List[str] = os.path.realpath(__file__).rsplit('/',1)
+
+    # Initialize the reference taxon as an empty string
+    ref_taxon: str = ""
+
+    # Initialize the absolute path of the alignment file as False
+    absolute_align_file_path: Optional[str] = False
+    # If an alignment file has been specified
     if not args.align_file == False:
+        # Get the absolute path of the alignment file
         absolute_align_file_path = os.path.abspath(args.align_file)
-        # print(absolute_align_file_path)
 
-    absolute_accs_file_path = False
+    # Initialize the absolute path of the accessions file as False
+    absolute_accs_file_path: Optional[str] = False
+    # If an accessions file has been specified
     if not args.accs_file == False:
+        # Get the absolute path of the accessions file
         absolute_accs_file_path = os.path.abspath(args.accs_file)
-        # print(absolute_accs_file_path)
 
-    absolute_tree_file_path = False
+    # Initialize the absolute path of the starting tree file as False
+    absolute_tree_file_path: Optional[str] = False
+    # If a starting tree file has been specified
     if not args.starting_tree == False:
+        # Get the absolute path of the starting tree file
         absolute_tree_file_path = os.path.abspath(args.starting_tree)
-        # print(absolute_tree_file_path)
 
-    # calculate the core organization to pass to Extensiphy
+    # Print a message indicating that the allocated cores are being assessed
     print("Assessing allocated cores.")
-    get_cores = calculate_cores(args.cores)
+    # Calculate the core organization to pass to Extensiphy
+    get_cores: int = calculate_cores(args.cores)
 
     # Check if output dir has been made already from a previous run
     # If output dir exists, the fundamentals of the program change to suit
@@ -66,38 +88,22 @@ def main():
     print("Checking if this is a new run or a continuing run.")
     dir_existence = check_dir_exists(args.ip_out_dir)
 
+    # Change the current working directory to the output directory
     os.chdir(args.ip_out_dir)
-    # print(args.ip_out_dir)
-    absolute_output_dir_path = os.path.abspath(os.getcwd())
+    # Get the absolute path of the output directory
+    absolute_output_dir_path: str = os.path.abspath(os.getcwd())
 
-    sub_log_file = absolute_output_dir_path + '/run_log_files/subprocess_command_logs.txt'
+# Define the path to the subprocess command log file
+    sub_log_file: str = absolute_output_dir_path + '/run_log_files/subprocess_command_logs.txt'
 
+    # Create the subprocess command log file
     subprocess.run(["touch", sub_log_file])
 
-    # print(absolute_output_dir_path)
-
-    # absolute_align_file_path = ''
-    # if not args.align_file == False:
-    #     absolute_align_file_path = os.path.abspath(args.align_file)
-    # print(absolute_align_file_path)
-
-    # absolute_accs_file_path = ''
-    # if not args.accs_file == False:
-    #     absolute_accs_file_path = os.path.abspath(args.accs_file)
-    # print(absolute_accs_file_path)
-
-    # absolute_tree_file_path = ''
-    # if not args.starting_tree == False:
-    #     absolute_tree_file_path = os.path.abspath(args.starting_tree)
-    # print(absolute_tree_file_path)
-
+    # Write the names of the starting alignments to a file
     write_starting_align_names(absolute_output_dir_path, absolute_align_file_path)
 
-    # write_starting_align_names(absolute_output_dir_path, args.align_file)
-    #
-    # # download_accessions(args.organism, args.ip_out_dir)
-    # print("Working out how to handle getting accession numbers.")
-    accessions = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, absolute_accs_file_path, sub_log_file)
+    # Handle accession options and get the list of accessions
+    accessions: List[str] = handle_accession_options(args.accession_method, args.organism, absolute_output_dir_path, absolute_accs_file_path, sub_log_file)
 
     #read list of accessions
     read_accessions = ''
@@ -114,94 +120,119 @@ def main():
 
         split_alignment(absolute_output_dir_path + '/intermediate_files/alignment.fas', absolute_output_dir_path + '/sequence_storage')
 
+        # Select the reference taxon
         select_ref(args.ref, absolute_output_dir_path)
-
+    
+        # Handle the starting tree
         handle_starting_tree(absolute_output_dir_path, get_cores, absolute_tree_file_path, args.placement)
 
     else:
+        # Print a message indicating that the program is proceeding with a new run using the previous database
         print("Proceeding with new run using previous database.")
 
+    # Clean up any incomplete downloads
     clean_incomplete_downloads(absolute_output_dir_path)
 
+    # Read the names of the fasta files
     read_fasta = read_fasta_names(absolute_output_dir_path)
 
-    # #read list of accessions
-    # read_accessions = read_csv_file(absolute_output_dir_path)
+    # Initialize the variables for removing duplicate paired and single accessions
     remove_paired_dupes = ''
     remove_single_dupes = ''
-    #Check list of run SRA numbers vs the sequences already in the alignment to prevent duplicates.
+
+    # Check the list of run SRA numbers against the sequences already in the alignment to prevent duplicates
     if args.accession_method == 'AUTO_DL':
         remove_paired_dupes = check_duplicate_accesions(read_accessions[0], read_fasta)
         remove_single_dupes = check_duplicate_accesions(read_accessions[1], read_fasta)
     elif args.accession_method == 'USER_INPUT':
         remove_paired_dupes = check_duplicate_accesions(read_accessions, read_fasta)
 
-    # print(remove_paired_dupes)
-    # print(remove_single_dupes)
-
+    # Prepare the batch accessions for paired and single reads
     paired_batch_accessions = prepare_batch_accessions(remove_paired_dupes, get_cores[0])
     single_batch_accessions = prepare_batch_accessions(remove_single_dupes, get_cores[0])
 
-    print(paired_batch_accessions)
-    print(single_batch_accessions)
-
+    # Write the names of the current run accessions for paired and single reads
     write_current_run_names(absolute_output_dir_path, paired_batch_accessions)
     write_current_run_names(absolute_output_dir_path, single_batch_accessions)
 
+    # If there are any paired batch accessions
     if len(paired_batch_accessions) > 0:
+        # Print a message indicating that the program is processing paired-end read files
         print("Processing paired-end read files.")
+        # Download and run the data for the paired batch accessions
         process_data = downloading_and_running(paired_batch_accessions, absolute_output_dir_path, get_cores, "PAIRED", sub_log_file)
 
+    # If there are any single batch accessions
     if len(single_batch_accessions) > 0:
+        # Print a message indicating that the program is processing single-end read files
         print("Processing single-end read files.")
+        # Download and run the data for the single batch accessions
         process_data = downloading_and_running(single_batch_accessions, absolute_output_dir_path, get_cores, "SINGLE", sub_log_file)
-    
+
+    # Print a message indicating the end of the intensiphy process
     print('end of intensiphy')
 
+    # If the placement option is on
     if args.placement == 'ON':
+        # Print a message indicating that the program is placing new sequences into the starting tree
         print("Placing new sequences into starting tree.")
-
-        # Make new alignment and perform placement into tree
+        # Make a new alignment and perform placement into the tree
         construct_align_and_place(absolute_output_dir_path)
 
 
+def check_dir_exists(dir_name: str) -> bool:
+    """
+    Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. 
+    If the directory doesn't exist, no previous run was performed, build all necessary sub directories.
 
+    Args:
+        dir_name (str): The name of the directory to check.
 
+    Returns:
+        bool: True if the directory exists, False otherwise.
+    """
 
-def check_dir_exists(dir_name):
-    """Check if output directory exists. If the directory exists, a previous run of Intensiphy was probably performed. \
-        If the directory doesn't exist, no previous run was performed, build all necessary sub directories."""
+    # Print a message indicating that the program is checking if the output directory already exists
     print("Checking if output directory already exists.")
-    does_dir_exist = os.path.isdir(dir_name)
+
+    # Check if the directory exists
+    does_dir_exist: bool = os.path.isdir(dir_name)
+
+    # Define the list of subdirectories
+    ip_folders: List[str] = ['read_files', 'run_log_files', 'intermediate_files', 'accession_files', 'sequence_storage']
+
+    # Print a message indicating whether the output directory exists
     print("Does the output specified output directory exist?: ", does_dir_exist)
 
+    # If the directory exists
     if does_dir_exist:
+        # For each subdirectory
+        for sub_dir_name in ip_folders:
+            # Assert that the subdirectory exists
+            assert os.path.isdir(dir_name + '/' + sub_dir_name)
 
-        assert os.path.isdir(dir_name + "/read_files")
-        assert os.path.isdir(dir_name + "/run_log_files")
-        assert os.path.isdir(dir_name + "/intermediate_files")
-        assert os.path.isdir(dir_name + "/accession_files")
-        assert os.path.isdir(dir_name + "/sequence_storage")
-        # assert os.path.isdir(dir_name + "/similarity_logs")
-
+        # Return whether the directory exists
         return does_dir_exist
 
+    # If the directory does not exist
     else:
-        subprocess.run(["mkdir", dir_name])
-        subprocess.run(["mkdir", dir_name + "/read_files"])
-        subprocess.run(["mkdir", dir_name + "/run_log_files"])
-        subprocess.run(["mkdir", dir_name + "/intermediate_files"])
-        subprocess.run(["mkdir", dir_name + "/accession_files"])
-        subprocess.run(["mkdir", dir_name + "/sequence_storage"])
-        # subprocess.run(["mkdir", dir_name + "/similarity_logs"])
+        # Create the directory
+        os.makedirs(dir_name)
 
-        assert os.path.isdir(dir_name + "/read_files")
-        assert os.path.isdir(dir_name + "/run_log_files")
-        assert os.path.isdir(dir_name + "/intermediate_files")
-        assert os.path.isdir(dir_name + "/accession_files")
-        assert os.path.isdir(dir_name + "/sequence_storage")
-        # assert os.path.isdir(dir_name + "/similarity_logs")
+        # For each subdirectory
+        for sub_dir_name in ip_folders:
+            # Create the subdirectory
+            os.makedirs(dir_name + '/' + sub_dir_name)
 
+        # Assert that the directory exists
+        assert os.path.isdir(dir_name)
+
+        # For each subdirectory
+        for sub_dir_name in ip_folders:
+            # Assert that the subdirectory exists
+            assert os.path.isdir(dir_name + '/' + sub_dir_name)
+
+        # Return whether the directory exists
         return does_dir_exist
 
 if __name__ == '__main__':
