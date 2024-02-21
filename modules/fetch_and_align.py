@@ -829,42 +829,66 @@ def downloading_and_running(accessions: List[List[str]], out_dir: str, cores: in
         None
     """
 
-    ref = out_dir +'/intermediate_files/reference.fas'
-    ep_output_align = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
-    now = datetime.datetime.now()
+    # Construct the path to the reference file
+    ref: str = out_dir +'/intermediate_files/reference.fas'
+    # Construct the path to the alignment output file
+    ep_output_align: str = out_dir + '/intermediate_files/ep_output/RESULTS/extended.aln'
+    # Get the current date and time
+    now: datetime.datetime = datetime.datetime.now()
     
+    # Open the log file in append mode
     open_log_file = open(log_file, 'a')
 
+    # For each batch of accession numbers
     for accession_batch in accessions:
         print("Batch of current accessions is ", accession_batch)
+
+        # Get length of accession batch
         len_of_this_batch = len(accession_batch)
-        not_downloaded_this_run = []
 
+        # Initialize a list for accession numbers that fail to download
+        not_downloaded_this_run: List[str] = []
+
+        # For each accession number in the batch
         for num, accession in enumerate(accession_batch):
-            download_status = fasterq_dump_reads(out_dir, accession)
 
+            # Download the reads using the fasterq_dump_reads function
+            # Collect the output in a returned string
+            download_status: str = fasterq_dump_reads(out_dir, accession)
+
+            # If we dont get a returned status indicating the reads were downloaded
             if download_status != "DOWNLOADED":
 
+                # Add the accession number to the list of failed downloads
                 not_downloaded_this_run.append(accession)
             
             # TODO: add renaming for single end read files here to accomodate extensiphy settings
             # TODO: or rework extensiphy single end read file processing
 
+        # TODO: reassess this logic
+        # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
+        # If len of not downloaded accessions list isn't almost the size of this batch of accessions
+        # Continue with processing
+        # Currently just a check to see if we're getting MOST accessions downloaded
         if len(not_downloaded_this_run) <= (len_of_this_batch / 2):
             print("Batch contains at least some accessions that were downloaded.")
             print("Proceeding to EP.")
-        # If the number of failed downloads is less than the number of accessions being downloaded, skip the run
 
+            # If this accession or batch of accessions is paired reads
             if pair_or_not_toggle == "PAIRED":
 
+                # Run Extensiphy using the downloaded read files
                 ep_command = ["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output']
 
+                # Pass the error and output of the subprocess Extensiphy run to a log file
                 run_ep = subprocess.Popen(ep_command, stdout=open_log_file, stderr=open_log_file)
 
+                # Wait for the process to finish before proceeding
                 os.wait()
 
                 # subprocess.run(["extensiphy.sh", "-a", ref, "-d", out_dir + "/read_files", "-i", "CLEAN", "-p", str(cores[0]) ,"-c", str(cores[1]), "-1", "_1.fastq", "-2", "_2.fastq", "-o", out_dir + '/intermediate_files/ep_output'])
 
+            # TODO: single read processing is broken at the moment. Fix
             elif pair_or_not_toggle == "SINGLE":
 
                 # TODO: understand if we're getting seg faults running extensiphy for single end reads.
@@ -878,21 +902,43 @@ def downloading_and_running(accessions: List[List[str]], out_dir: str, cores: in
 
             print("Extensiphy runs complete.")
             print("Cleaning up files for next batch.")
+
+            # Use Try and the split_alignment function to test if the Extensiphy run completed
+            # If not, move the log file to storage for examination
+            # And remove the incomplete Extensiphy run dir so data processing can continue
             try:
+
+                # Split the output alignment of Extensiphy to sequence storage
                 split_alignment(ep_output_align, out_dir + '/sequence_storage')
 
+            # If the alignment file isnt found
+            # move the log file to storage
             except FileNotFoundError:
                 print("EP output alignment not found. Moving dev files to logs directory.")
-                ep_log_file = out_dir + '/intermediate_files/ep_output/ep_dev_log.txt'
-                new_log_name = out_dir + '/run_log_files/ep_log_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+
+                # Initialize path to Extensiphy log file
+                ep_log_file: str = out_dir + '/intermediate_files/ep_output/ep_dev_log.txt'
+
+                # Initialize path and name with date of new log file and location
+                new_log_name: str = out_dir + '/run_log_files/ep_log_' + now.strftime('%Y-%m-%d-%H-%M-%S')
+
+                # copy the file and re name it using the new path
                 shutil.copyfile(ep_log_file, new_log_name)
+
+                # Remove the incomplete Extensiphy dir
                 shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
             print("Removing used read files.")
+
+            # Remove the read files used for this run
             rm_read_files(out_dir + '/read_files')
 
+            # Remove the completed Extensiphy run dir
             shutil.rmtree(out_dir + '/intermediate_files/ep_output')
 
+        # If the number of accessions not downloaded equals the entire batch of accessions
+        # Print the accessions
+        # TODO: Log this information
         elif len(not_downloaded_this_run) == len_of_this_batch:
 
             print("ERRORS ON DOWNLOAD: Skipping EP run due to un-downloaded accessions batch.")
@@ -901,9 +947,7 @@ def downloading_and_running(accessions: List[List[str]], out_dir: str, cores: in
             print(not_downloaded_this_run)
 
 
-
-
-def check_downloaded_read_files(outdir_, read_format_toggle):
+def check_downloaded_read_files(outdir_: str, read_format_toggle: str) -> None:
     """
     Checks the downloaded read files in the read_files directory.
 
@@ -914,32 +958,39 @@ def check_downloaded_read_files(outdir_, read_format_toggle):
 
     Args:
         outdir_ (str): The path to the output directory.
-        read_format_toggle (bool): A toggle for the read format.
+        read_format_toggle (str): A toggle for the read format.
 
     Returns:
         None
     """
 
-    # establish read directory path
-    read_dir = outdir_ + "/read_files"
+    # Construct the path to the read_files directory within the output directory
+    read_dir: str = outdir_ + "/read_files"
 
-    list_of_files = os.listdir(read_dir)
+    # Get a list of all files in the read_files directory
+    list_of_files: List[str] = os.listdir(read_dir)
 
-    one_paired_accepted_srr_format = "SRR\w+_1.fastq"
-    two_paired_accepted_srr_format = "SRR\w+_2.fastq"
+    # Define the accepted formats for paired SRR files
+    one_paired_accepted_srr_format: str = "SRR\w+_1.fastq"
+    two_paired_accepted_srr_format: str = "SRR\w+_2.fastq"
 
-    one_paired_accepted_err_format = "ERR\w+_1.fastq"
-    two_paired_accepted_err_format = "ERR\w+_2.fastq"
+    # Define the accepted formats for paired ERR files
+    one_paired_accepted_err_format: str = "ERR\w+_1.fastq"
+    two_paired_accepted_err_format: str = "ERR\w+_2.fastq"
 
+    # Compile the regular expressions for the accepted formats for paired SRR files
     one_paired_compile_srr = re.compile(one_paired_accepted_srr_format)
-    one_paired_compile_err = re.compile(one_paired_accepted_err_format)
     two_paired_compile_srr = re.compile(two_paired_accepted_srr_format)
+
+    # Compile the regular expressions for the accepted formats for paired ERR files
+    one_paired_compile_err = re.compile(one_paired_accepted_err_format)
     two_paired_compile_err = re.compile(two_paired_accepted_err_format)
 
-    single_accepted_srr_format = "SRR\w+_1.fastq"
-    single_accepted_err_format = "ERR\w+_1.fastq"
+    # Define the accepted formats for single SRR and ERR files
+    single_accepted_srr_format: str = "SRR\w+_1.fastq"
+    single_accepted_err_format: str = "ERR\w+_1.fastq"
 
-
+    # Compile the regular expressions for the accepted formats for single SRR and ERR files
     single_compile_srr = re.compile(single_accepted_srr_format)
     single_compile_err = re.compile(single_accepted_err_format)
 
@@ -956,7 +1007,8 @@ def check_downloaded_read_files(outdir_, read_format_toggle):
                 paired_read_set = check_one_paired_err[0].replace('_1','_2')
                 print(paired_read_set)
 
-def rm_read_files(read_dir):
+
+def rm_read_files(read_dir: str) -> None:
     """
     Removes all read files in the specified directory in preparation for the next run.
 
@@ -971,14 +1023,20 @@ def rm_read_files(read_dir):
         None
     """
 
+    # Print a message indicating that the function is removing the read files
     print("removing read files in preparation for next run.")
-    fastq_file_list = os.listdir(read_dir)
-    # print(fastq_file_list)
+
+    # Get a list of all files in the specified directory
+    fastq_file_list: List[str] = os.listdir(read_dir)
+
+    # For each file in the list of files
     for fq_file in fastq_file_list:
-        path_to_file = os.path.join(read_dir, fq_file)
+        # Construct the path to the file
+        path_to_file: str = os.path.join(read_dir, fq_file)
+        # Remove the file
         os.remove(path_to_file)
 
-def bulk_download(accession_list, out_dir):
+def bulk_download(accession_list: List[str], out_dir: str) -> None:
     """
     Downloads bulk data for a list of accession numbers.
 
@@ -988,17 +1046,22 @@ def bulk_download(accession_list, out_dir):
     The function does not return a value, but it prints a message indicating that the bulk data download scheme has begun.
 
     Args:
-        accession_list (list): A list of accession numbers for which to download data.
+        accession_list (List[str]): A list of accession numbers for which to download data.
         out_dir (str): The path to the output directory.
 
     Returns:
         None
     """
 
+    # Print a message indicating that the bulk data download scheme has begun
     print("Bulk data download scheme begun.")
+
+    # Change the current working directory to the read_files directory within the output directory
     os.chdir(out_dir + "/read_files")
 
+    # For each accession number in the list
     for single_accession in accession_list:
-
+        # Print the accession number
         print(single_accession)
+        # Use the fasterq-dump utility to download the data for the accession number
         subprocess.run(["fasterq-dump", "--split-files", single_accession])

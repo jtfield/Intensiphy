@@ -7,8 +7,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 import datetime
-# from multiprocessing import Pool, freeze_support
-# import multiprocessing as mp
+
 
 def handle_starting_tree(outdir, threads, tree_var, placement_var):
     """Builds starting tree if a tree isnt added as input by user"""

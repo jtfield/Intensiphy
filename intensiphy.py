@@ -2,23 +2,10 @@
 
 import os
 import argparse
-# import pathlib
-# import shutil
-# from numpy.lib.shape_base import split
-# import pandas as pd
 import subprocess
-# import datetime
-# import dateutil
-# import sys
-# sys.path.append('./modules')
-# import modules.seq_similarity_assessment
-# import modules.alignment_splitter
-# from modules.seq_similarity_assessment import *
 from modules.alignment_splitter import split_alignment
 from modules.fetch_and_align import *
 from modules.tree_assess import *
-# import tests.accessions_tests.accession_download_test
-# import tests.assembly_tests.gon_phy_test
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='Intensiphy', \
